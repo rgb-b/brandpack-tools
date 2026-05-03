@@ -43,3 +43,6 @@ npm-debug.log*
 
 # Archive/backup folders
 archive/
+CLAUDE.md
+.claude/
+PLAN.md
