@@ -228,7 +228,7 @@
       <div class="step-header">
         <div class="step-icon">⚙️</div>
         <h1 class="step-title">Add your equipment</h1>
-        <p class="step-subtitle">Machines, printers, tools — anything you track inventory or maintenance for. You can add more later.</p>
+        <p class="step-subtitle">Anything you track inventory or maintenance for — machines, vehicles, workstations, tools. You can skip this and add items later.</p>
       </div>
       <div class="equipment-list" id="equipmentList"></div>
       <div class="equipment-add-row">
@@ -238,6 +238,7 @@
       </div>
       <div class="step-nav">
         <button class="btn btn-secondary" onclick="goTo(2)">← Back</button>
+        <button class="btn btn-ghost" onclick="goTo(4)" style="flex:none;color:var(--color-text-muted)">Skip</button>
         <button class="btn btn-primary" onclick="goTo(4)">Next →</button>
       </div>
     </div>
@@ -257,6 +258,10 @@
         <label class="form-label">PIN <span style="color:var(--color-text-muted)">(4–8 digits)</span></label>
         <input type="password" id="adminPin" class="form-input" placeholder="Enter PIN" maxlength="8" inputmode="numeric" autocomplete="new-password">
       </div>
+      <div class="form-group">
+        <label class="form-label">Confirm PIN</label>
+        <input type="password" id="adminPinConfirm" class="form-input" placeholder="Re-enter PIN" maxlength="8" inputmode="numeric" autocomplete="new-password">
+      </div>
       <div id="setupError" class="alert alert-error" style="display:none"></div>
       <div class="step-nav">
         <button class="btn btn-secondary" onclick="goTo(3)">← Back</button>
@@ -273,7 +278,7 @@
       </div>
       <ul class="success-list" id="summaryList"></ul>
       <div class="step-nav" style="margin-top:var(--spacing-xl)">
-        <a href="/src/tools/login/index.html" class="btn btn-primary" style="text-align:center">Go to Login →</a>
+        <a href="/" class="btn btn-primary" style="text-align:center">Go to Login →</a>
       </div>
     </div>
 

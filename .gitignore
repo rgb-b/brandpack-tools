@@ -54,3 +54,5 @@ REDESIGN_PROMPT.md
 brandpack-tools-analysis.md
 server/downloads/
 cloudflared.deb
+config.dev.json
+server/.env.dev

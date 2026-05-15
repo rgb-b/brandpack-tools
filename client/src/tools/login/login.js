@@ -9,20 +9,22 @@ import { getAppConfig } from '../../api/client.js'
 import '../../shared/utils/cyberpunk-effects.js'
 import '../../shared/utils/lowEnergy.js'
 
-// Populate app name from config
+// Populate app name and footer from config (getAppConfig caches the result)
 getAppConfig().then(cfg => {
   const name = cfg?.app?.name || 'WorkBase'
   const el = document.getElementById('loginAppName')
   if (el) el.textContent = name
-  const setupTitle = document.getElementById('loginSetupTitle')
-  if (setupTitle) setupTitle.textContent = `Welcome to ${name}!`
   document.title = `Login — ${name}`
+  const footer = document.getElementById('loginFooterText')
+  if (footer) footer.textContent = `${name} v3.0.0`
   if (cfg?.app?.primaryColor) {
     document.documentElement.style.setProperty('--color-primary', cfg.app.primaryColor)
   }
 }).catch(() => {
   const el = document.getElementById('loginAppName')
   if (el) el.textContent = 'WorkBase'
+  const footer = document.getElementById('loginFooterText')
+  if (footer) footer.textContent = 'WorkBase v3.0.0'
 })
 
 // Login state
@@ -42,33 +44,21 @@ const backspaceButton = document.getElementById('backspaceButton')
  * Initialize login page
  */
 async function init() {
-  // Check if first-time setup is needed
-  const setupRequired = await checkSetupRequired()
-
-  if (setupRequired) {
-    showFirstTimeSetup()
-    return
+  // setup_complete=false means we need first-time setup
+  // We read this from /api/v1/config which is always whitelisted
+  try {
+    const response = await fetch('/api/v1/config', { credentials: 'include' })
+    const data = await response.json()
+    if (data.success && data.data.setup_complete === false) {
+      showFirstTimeSetup()
+      return
+    }
+  } catch (e) {
+    // If config fetch fails, fall through to login form
   }
 
   // Normal login flow
   setupLoginForm()
-}
-
-/**
- * Check if first-time setup is needed
- * @returns {Promise<boolean>}
- */
-async function checkSetupRequired() {
-  try {
-    const response = await fetch('/api/v1/users/setup/required', {
-      credentials: 'include'
-    })
-    const data = await response.json()
-    return data.data.setupRequired
-  } catch (error) {
-    console.error('Failed to check setup status:', error)
-    return false
-  }
 }
 
 /**
@@ -255,117 +245,11 @@ async function handleSubmit(event) {
 }
 
 /**
- * Show first-time setup UI
+ * Redirect to setup wizard if first-time setup is needed
+ * (setupGuard handles this server-side; this is a client-side fallback)
  */
 function showFirstTimeSetup() {
-  document.getElementById('loginCard').style.display = 'none'
-  document.getElementById('setupCard').style.display = 'block'
-
-  // Setup form submission
-  document.getElementById('setupForm').addEventListener('submit', handleSetupSubmit)
-
-  // Import checkbox handler
-  document.getElementById('importLegacyData').addEventListener('change', (e) => {
-    if (e.target.checked) {
-      document.getElementById('importFile').click()
-    }
-  })
-
-  document.getElementById('importFile').addEventListener('change', (e) => {
-    const checkbox = document.getElementById('importLegacyData')
-    checkbox.checked = e.target.files.length > 0
-  })
-
-  // Focus the username input
-  document.getElementById('setupUsername').focus()
-}
-
-/**
- * Handle setup form submission
- * @param {Event} e
- */
-async function handleSetupSubmit(e) {
-  e.preventDefault()
-
-  const username = document.getElementById('setupUsername').value.trim()
-  const pin = document.getElementById('setupPin').value
-  const pinConfirm = document.getElementById('setupPinConfirm').value
-  const importCheckbox = document.getElementById('importLegacyData')
-  const importFile = document.getElementById('importFile').files[0]
-
-  // Validate
-  if (pin !== pinConfirm) {
-    showSetupError('PINs do not match')
-    return
-  }
-
-  const submitBtn = document.getElementById('setupSubmitBtn')
-  submitBtn.disabled = true
-  submitBtn.textContent = 'Setting up...'
-
-  try {
-    let endpoint = '/api/v1/users/setup'
-    let body = { username, pin }
-
-    // If importing data, use different endpoint and include data
-    if (importCheckbox.checked && importFile) {
-      const fileContent = await readFileAsText(importFile)
-      const importData = JSON.parse(fileContent)
-      endpoint = '/api/v1/users/setup/import'
-      body.importData = importData
-    }
-
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(body)
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Setup failed')
-    }
-
-    // Store user and redirect
-    const user = data.data.user || data.data
-    setCurrentUserCache(user)
-    window.location.href = '/src/tools/launcher/index.html'
-
-  } catch (error) {
-    console.error('Setup error:', error)
-    showSetupError(error.message || 'Setup failed. Please try again.')
-    submitBtn.disabled = false
-    submitBtn.textContent = 'Complete Setup'
-  }
-}
-
-/**
- * Show setup error message
- * @param {string} message
- */
-function showSetupError(message) {
-  const errorEl = document.getElementById('setupError')
-  errorEl.textContent = message
-  errorEl.style.display = 'block'
-  setTimeout(() => {
-    errorEl.style.display = 'none'
-  }, 5000)
-}
-
-/**
- * Read file as text
- * @param {File} file
- * @returns {Promise<string>}
- */
-function readFileAsText(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = (e) => resolve(e.target.result)
-    reader.onerror = reject
-    reader.readAsText(file)
-  })
+  window.location.href = '/src/tools/setup/index.html'
 }
 
 // Initialize on load

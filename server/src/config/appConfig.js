@@ -7,13 +7,17 @@
 
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
+import { dirname, join, isAbsolute } from 'path'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 // config.json lives at the project root (3 levels up from server/src/config/)
-const CONFIG_PATH = join(__dirname, '../../../config.json')
+// Override with CONFIG_PATH env var for testing/isolated instances
+const _cfgEnvPath = process.env.CONFIG_PATH
+const CONFIG_PATH = _cfgEnvPath
+  ? (isAbsolute(_cfgEnvPath) ? _cfgEnvPath : join(__dirname, '../../../', _cfgEnvPath))
+  : join(__dirname, '../../../config.json')
 
 const DEFAULTS = {
   app: {

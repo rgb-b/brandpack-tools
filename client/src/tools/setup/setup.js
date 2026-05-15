@@ -164,31 +164,36 @@ window.finishSetup = async function() {
 
   errEl.style.display = 'none'
 
+  const pinConfirm = document.getElementById('adminPinConfirm').value.trim()
   if (!username) return showError('Username is required.')
   if (!pin || pin.length < 4) return showError('PIN must be at least 4 digits.')
   if (!/^\d+$/.test(pin)) return showError('PIN must be digits only.')
+  if (pin !== pinConfirm) return showError('PINs do not match.')
 
   btn.disabled = true
   btn.textContent = 'Setting up…'
 
-  try {
-    // 1. Save config
-    const configPayload = {
-      app: {
-        name: document.getElementById('appName').value.trim() || 'WorkBase',
-        tagline: document.getElementById('appTagline').value.trim(),
-        primaryColor: selectedColor,
-        logoText: (document.getElementById('appName').value.trim()[0] || 'W').toUpperCase()
-      },
-      tools
-    }
+  const configPayload = {
+    app: {
+      name: document.getElementById('appName').value.trim() || 'WorkBase',
+      tagline: document.getElementById('appTagline').value.trim(),
+      primaryColor: selectedColor,
+      logoText: (document.getElementById('appName').value.trim()[0] || 'W').toUpperCase()
+    },
+    tools
+  }
 
-    const cfgRes = await fetch('/api/v1/config/setup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(configPayload)
-    })
-    if (!cfgRes.ok) throw new Error('Config save failed')
+  try {
+    // 1. Save config (skip if already complete — handles retry after failed user creation)
+    const currentCfg = await fetch('/api/v1/config').then(r => r.json())
+    if (!currentCfg.data?.setup_complete) {
+      const cfgRes = await fetch('/api/v1/config/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(configPayload)
+      })
+      if (!cfgRes.ok) throw new Error('Config save failed')
+    }
 
     // 2. Create admin user
     const userRes = await fetch('/api/v1/users/register', {
@@ -227,6 +232,8 @@ function showError(msg) {
 }
 
 function showSuccess(appName) {
+  // Clear cached config so the login page picks up the newly-saved app name
+  try { sessionStorage.removeItem('app:config') } catch {}
   document.getElementById('doneTitle').textContent = `${appName} is ready!`
 
   const enabledTools = Object.values(tools).filter(t => t.enabled).map(t => t.label)

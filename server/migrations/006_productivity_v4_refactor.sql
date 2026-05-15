@@ -25,7 +25,7 @@
 -- ============================================================================
 
 -- Task Library (per-user)
-CREATE TABLE productivity_tasks_v4 (
+CREATE TABLE IF NOT EXISTS productivity_tasks_v4 (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
   name TEXT NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE productivity_tasks_v4 (
 );
 
 -- Time Tracking Entries
-CREATE TABLE productivity_tracking_v4 (
+CREATE TABLE IF NOT EXISTS productivity_tracking_v4 (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
   task_id INTEGER NOT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE productivity_tracking_v4 (
 );
 
 -- Active Session (one row per user for real-time sync)
-CREATE TABLE productivity_active_sessions_v4 (
+CREATE TABLE IF NOT EXISTS productivity_active_sessions_v4 (
   user_id INTEGER PRIMARY KEY,
   task_id INTEGER NOT NULL,
   task_name TEXT NOT NULL,
@@ -64,7 +64,7 @@ CREATE TABLE productivity_active_sessions_v4 (
 );
 
 -- Work Schedule Configuration
-CREATE TABLE work_schedules (
+CREATE TABLE IF NOT EXISTS work_schedules (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
   day_of_week INTEGER NOT NULL,  -- 0=Sunday, 1=Monday, ..., 6=Saturday
@@ -81,16 +81,16 @@ CREATE TABLE work_schedules (
 -- ============================================================================
 
 -- Tracking queries by user and date
-CREATE INDEX idx_tracking_user_date ON productivity_tracking_v4(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_tracking_user_date ON productivity_tracking_v4(user_id, date);
 
 -- Find active tracking sessions
-CREATE INDEX idx_tracking_active ON productivity_tracking_v4(user_id, end_time) WHERE end_time IS NULL;
+CREATE INDEX IF NOT EXISTS idx_tracking_active ON productivity_tracking_v4(user_id, end_time) WHERE end_time IS NULL;
 
 -- Task lookup by user
-CREATE INDEX idx_tasks_user ON productivity_tasks_v4(user_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_tasks_user ON productivity_tasks_v4(user_id, is_active);
 
 -- Schedule lookup by user
-CREATE INDEX idx_schedule_user ON work_schedules(user_id);
+CREATE INDEX IF NOT EXISTS idx_schedule_user ON work_schedules(user_id);
 
 -- ============================================================================
 -- NOTES
