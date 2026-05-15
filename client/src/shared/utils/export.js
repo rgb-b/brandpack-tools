@@ -116,9 +116,9 @@ export function downloadJSON(data, filename) {
 
 /**
  * Export all data and download as file
- * @param {string} prefix - Filename prefix (default: 'brandpack-tools-backup')
+ * @param {string} prefix - Filename prefix (default: 'app-backup')
  */
-export function exportAndDownload(prefix = 'brandpack-tools-backup') {
+export function exportAndDownload(prefix = 'app-backup') {
   const data = exportAllData()
   const filename = `${prefix}-${formatDate()}`
   downloadJSON(data, filename)

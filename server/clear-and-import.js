@@ -9,7 +9,7 @@
 import sqlite3 from 'sqlite3'
 import { promisify } from 'util'
 
-const dbPath = './data/brandpack.db'
+const dbPath = './data/app.db'
 
 async function clearAndImport() {
   console.log('🗑️  Clearing and Importing Data\n')

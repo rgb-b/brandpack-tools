@@ -10,7 +10,7 @@ import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const DB_PATH = resolve(__dirname, '../data/brandpack.db')
+const DB_PATH = resolve(__dirname, '../data/app.db')
 const BACKUP_DIR = resolve(__dirname, '../backups')
 
 if (!existsSync(DB_PATH)) {

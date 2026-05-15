@@ -8,7 +8,7 @@
     <script>
         (function() {
             try {
-                const theme = localStorage.getItem('brandpack:theme') || 'default';
+                const theme = localStorage.getItem('app:theme') || 'default';
                 document.documentElement.setAttribute('data-theme', theme);
             } catch (e) {
                 // localStorage unavailable, use default
@@ -17,7 +17,7 @@
         })();
     </script>
 
-    <title>Brandpack Dashboard</title>
+    <title>Dashboard</title>
     <link rel="stylesheet" href="../../shared/styles/theme.css">
     <link rel="stylesheet" href="../../shared/styles/base.css">
     <link rel="stylesheet" href="../../shared/styles/components.css">
@@ -2488,42 +2488,8 @@
             <div class="section-header">
                 <div class="section-title">Tools</div>
             </div>
-            <div class="tools-grid">
-                <div class="tool-card" onclick="window.location.href='../inventory/index.html'">
-                    <div class="tool-icon">📦</div>
-                    <div class="tool-title">Inventory System</div>
-                    <div class="tool-desc">Track printer supplies, inks, media, and maintenance items</div>
-                    <div class="tool-stat" id="tool-stat-inventory"></div>
-                </div>
-
-                <div class="tool-card" onclick="window.location.href='../productivity-v4/index.html'">
-                    <div class="tool-icon">⏱️</div>
-                    <div class="tool-title">Time Tracker</div>
-                    <div class="tool-desc">Track tasks and analyze your work patterns</div>
-                    <div class="tool-stat" id="tool-stat-productivity"></div>
-                </div>
-
-                <div class="tool-card" onclick="window.location.href='../pantone/index.html'">
-                    <div class="tool-icon">🎨</div>
-                    <div class="tool-title">Pantone Tracker</div>
-                    <div class="tool-desc">Manage matched Pantone colors for Roland printing</div>
-                    <div class="tool-stat" id="tool-stat-pantone"></div>
-                </div>
-
-                <div class="tool-card" onclick="window.location.href='../converter/index.html'">
-                    <div class="tool-icon">🔀</div>
-                    <div class="tool-title">LAB-CMYK Converter</div>
-                    <div class="tool-desc">Convert between LAB and CMYK color spaces</div>
-                    <div class="tool-stat"></div>
-                </div>
-
-                <div class="tool-card" onclick="window.location.href='../maintenance/index.html'">
-                    <div class="tool-icon">🔧</div>
-                    <div class="tool-title">Maintenance Tracker</div>
-                    <div class="tool-desc">Log issues and schedule maintenance tasks</div>
-                    <div class="tool-stat" id="tool-stat-maintenance"></div>
-                </div>
-            </div>
+            <!-- Tool cards are rendered by launcher.js from /api/v1/config -->
+            <div class="tools-grid" id="toolsGrid"></div>
         </div>
 
         <!-- Dashboard Grid -->

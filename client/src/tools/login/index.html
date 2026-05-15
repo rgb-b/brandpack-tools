@@ -8,7 +8,7 @@
     <script>
         (function() {
             try {
-                const theme = localStorage.getItem('brandpack:theme') || 'default';
+                const theme = localStorage.getItem('app:theme') || 'default';
                 document.documentElement.setAttribute('data-theme', theme);
             } catch (e) {
                 // localStorage unavailable, use default
@@ -17,7 +17,7 @@
         })();
     </script>
 
-    <title>Login - Brandpack Tools</title>
+    <title>Login</title>
     <link rel="stylesheet" href="../../shared/styles/theme.css">
     <link rel="stylesheet" href="../../shared/styles/base.css">
     <link rel="stylesheet" href="../../shared/styles/components.css">
@@ -31,7 +31,7 @@
                 <div class="login-logo">
                     <div class="logo-icon">🔐</div>
                 </div>
-                <h1 class="login-title text-gradient">Brandpack Tools</h1>
+                <h1 class="login-title text-gradient" id="loginAppName">Loading…</h1>
                 <p class="login-subtitle">Sign in to continue</p>
             </div>
 
@@ -96,7 +96,7 @@
         <div class="setup-card" id="setupCard" style="display: none;">
             <div class="setup-header">
                 <div class="setup-icon">🎉</div>
-                <h2 class="setup-title">Welcome to Brandpack Tools!</h2>
+                <h2 class="setup-title" id="loginSetupTitle">Welcome!</h2>
                 <p class="setup-subtitle">Let's set up your administrator account</p>
             </div>
 

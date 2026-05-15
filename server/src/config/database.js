@@ -7,8 +7,8 @@
 
 import sqlite3 from 'sqlite3'
 import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
-import { existsSync, mkdirSync, readFileSync } from 'fs'
+import { dirname, join, isAbsolute } from 'path'
+import { existsSync, mkdirSync, readFileSync, readdirSync } from 'fs'
 import { promisify } from 'util'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -17,9 +17,12 @@ const __dirname = dirname(__filename)
 // Enable verbose mode in development
 const sqlite3Verbose = process.env.NODE_ENV === 'development' ? sqlite3.verbose() : sqlite3
 
-// Database file path
+// Database file path — use DATABASE_PATH env var or default to app.db
 const DB_DIR = join(__dirname, '../../data')
-const DB_PATH = join(DB_DIR, 'brandpack.db')
+const _dbEnvPath = process.env.DATABASE_PATH
+const DB_PATH = _dbEnvPath
+  ? (isAbsolute(_dbEnvPath) ? _dbEnvPath : join(__dirname, '../..', _dbEnvPath.replace(/^\.\//, '')))
+  : join(DB_DIR, 'app.db')
 const MIGRATIONS_DIR = join(__dirname, '../../migrations')
 
 // Ensure data directory exists
@@ -65,6 +68,7 @@ export async function getDatabase() {
         if (isNewDatabase) {
           await runMigrations()
         }
+        await runIncrementalMigrations()
 
         resolve(db)
       } catch (error) {
@@ -97,6 +101,45 @@ async function runMigrations() {
       }
     })
   })
+}
+
+/**
+ * Run numbered migration files (e.g. 007_equipment.sql) that haven't been applied yet.
+ * Tracks applied migrations in a `schema_migrations` table.
+ */
+async function runIncrementalMigrations() {
+  // Ensure tracking table exists
+  await new Promise((resolve, reject) => {
+    db.run(
+      'CREATE TABLE IF NOT EXISTS schema_migrations (name TEXT PRIMARY KEY, applied_at DATETIME DEFAULT CURRENT_TIMESTAMP)',
+      (err) => err ? reject(err) : resolve()
+    )
+  })
+
+  // Get already-applied migrations
+  const applied = await new Promise((resolve, reject) => {
+    db.all('SELECT name FROM schema_migrations', (err, rows) => {
+      if (err) reject(err); else resolve(new Set(rows.map(r => r.name)))
+    })
+  })
+
+  // Find numbered migration files, sorted
+  const files = readdirSync(MIGRATIONS_DIR)
+    .filter(f => /^\d+_.+\.sql$/.test(f))
+    .sort()
+
+  for (const file of files) {
+    if (applied.has(file)) continue
+
+    const sql = readFileSync(join(MIGRATIONS_DIR, file), 'utf8')
+    await new Promise((resolve, reject) => {
+      db.exec(sql, (err) => err ? reject(err) : resolve())
+    })
+    await new Promise((resolve, reject) => {
+      db.run('INSERT INTO schema_migrations (name) VALUES (?)', [file], (err) => err ? reject(err) : resolve())
+    })
+    console.log(`✓ Migration applied: ${file}`)
+  }
 }
 
 /**

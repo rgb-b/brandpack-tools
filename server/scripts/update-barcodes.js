@@ -24,7 +24,7 @@ const BARCODES = {
 };
 
 async function updateBarcodes() {
-  const dbPath = path.join(__dirname, '../data/brandpack.db');
+  const dbPath = path.join(__dirname, '../data/app.db');
 
   console.log('=== Barcode Update ===\n');
 

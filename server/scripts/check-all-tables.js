@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-const DB_PATH = join(__dirname, '../data/brandpack.db')
+const DB_PATH = join(__dirname, '../data/app.db')
 
 const db = new sqlite3.Database(DB_PATH, (err) => {
   if (err) {

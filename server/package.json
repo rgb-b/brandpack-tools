@@ -1,7 +1,7 @@
 {
-  "name": "brandpack-tools-server",
+  "name": "work-tools-server",
   "version": "3.0.0",
-  "description": "Backend server for Brandpack Tools with SQLite database",
+  "description": "Backend server for WorkBase",
   "main": "src/server.js",
   "type": "module",
   "scripts": {
@@ -15,7 +15,7 @@
     "restore": "node scripts/restore-database.js"
   },
   "keywords": [
-    "brandpack",
+    "work-tools",
     "tools",
     "inventory",
     "maintenance",

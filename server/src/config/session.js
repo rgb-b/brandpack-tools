@@ -38,7 +38,7 @@ if (!SESSION_SECRET) {
  */
 export function createSessionMiddleware() {
   return session({
-    secret: SESSION_SECRET || 'brandpack-tools-dev-secret-do-not-use-in-production',
+    secret: SESSION_SECRET || 'dev-secret-change-this-in-production',
     resave: false,
     saveUninitialized: false,
     store: new SQLiteStore({

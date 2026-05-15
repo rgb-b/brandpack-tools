@@ -1,8 +1,6 @@
 /**
- * API Client for Brandpack Tools
- *
- * This module provides a unified interface for making API calls to the backend.
- * It replaces the localStorage-based storage with server-side persistence.
+ * API Client
+ * Unified interface for backend API calls.
  */
 
 import toast from '../shared/components/Toast.js'
@@ -957,8 +955,58 @@ export const users = {
 }
 
 // ============================================================================
-// HEALTH CHECK
+// CONFIG API
 // ============================================================================
+
+export const config = {
+  /** Get app config (cached in sessionStorage for the page lifetime) */
+  async get() {
+    const cached = sessionStorage.getItem('app:config')
+    if (cached) {
+      try { return JSON.parse(cached) } catch {}
+    }
+    const data = await request('/config')
+    sessionStorage.setItem('app:config', JSON.stringify(data.data))
+    return data.data
+  },
+
+  /** Save config (setup wizard / admin) */
+  async save(payload) {
+    sessionStorage.removeItem('app:config')
+    return request('/config/setup', { method: 'POST', body: payload })
+  }
+}
+
+/**
+ * Convenience helper — returns the app config object, fetching if needed.
+ * Safe to call from any page; resolves to defaults if fetch fails.
+ */
+export async function getAppConfig() {
+  try {
+    return await config.get()
+  } catch {
+    return { app: { name: 'WorkBase', tagline: '', primaryColor: '#ff6b35' }, tools: {}, equipment: [] }
+  }
+}
+
+// ============================================================================
+// EQUIPMENT API
+// ============================================================================
+
+export const equipment = {
+  async getAll() {
+    return request('/equipment')
+  },
+  async create(item) {
+    return request('/equipment', { method: 'POST', body: item })
+  },
+  async update(id, updates) {
+    return request(`/equipment/${id}`, { method: 'PUT', body: updates })
+  },
+  async delete(id) {
+    return request(`/equipment/${id}`, { method: 'DELETE' })
+  }
+}
 
 // ============================================================================
 // SEARCH API
@@ -1031,5 +1079,7 @@ export default {
   migration,
   users,
   search,
+  config,
+  equipment,
   checkHealth
 }

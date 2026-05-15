@@ -5,7 +5,7 @@
  * and cross-tab synchronization.
  */
 
-const THEME_KEY = 'brandpack:theme'
+const THEME_KEY = 'app:theme'
 
 const THEMES = {
   DEFAULT: 'default',

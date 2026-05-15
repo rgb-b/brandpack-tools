@@ -3,7 +3,7 @@ import { storage } from '../../shared/utils/storage.js'
 import { STORAGE_KEYS, VERSION } from '../../shared/constants.js'
 import { exportAllData } from '../../shared/utils/export.js'
 import { requireAuth, isAdmin } from '../../shared/utils/auth.js'
-import { dashboard, inventory, maintenance, pantone, productivity, users, productivityV4 } from '../../api/client.js'
+import { dashboard, inventory, maintenance, pantone, productivity, users, productivityV4, getAppConfig } from '../../api/client.js'
 import toast from '../../shared/components/Toast.js'
 import '../../shared/utils/cyberpunk-effects.js'
 import { formatDuration } from '../../shared/utils/datetime.js'
@@ -41,10 +41,8 @@ async function init() {
     const user = await requireAuth()
     if (!user) return // requireAuth redirects to login if not authenticated
 
-    // Add admin tool card if user is admin
-    if (isAdmin(user)) {
-        addAdminToolCard()
-    }
+    // Render tool cards from config (replaces static HTML)
+    await renderToolCards(user)
 
     loadDashboardData()
     initializeClock()
@@ -69,23 +67,72 @@ async function init() {
     intervals.maintenanceReminder = setInterval(loadMaintenanceReminder, le(300000, 900000))
 }
 
-// Add admin tool card to the tools grid
-function addAdminToolCard() {
-    const toolsGrid = document.querySelector('.tools-grid')
+// Tool metadata: icon, description fallback, stat element id, path
+const TOOL_META = {
+    inventory:         { icon: '📦', desc: 'Track supplies and stock levels',           statId: 'tool-stat-inventory',    path: '../inventory/index.html' },
+    'productivity-v4': { icon: '⏱️', desc: 'Track tasks and time sessions',             statId: 'tool-stat-productivity', path: '../productivity-v4/index.html' },
+    pantone:           { icon: '🎨', desc: 'Colour matching and status tracker',        statId: 'tool-stat-pantone',      path: '../pantone/index.html' },
+    converter:         { icon: '🔀', desc: 'LAB ↔ CMYK colour conversion',              statId: null,                     path: '../converter/index.html' },
+    maintenance:       { icon: '🔧', desc: 'Equipment issues and service log',           statId: 'tool-stat-maintenance',  path: '../maintenance/index.html' },
+    admin:             { icon: '👤', desc: 'Manage users and system settings',           statId: null,                     path: '../admin/index.html' },
+}
+
+// Render tool cards from config — replaces static HTML cards
+async function renderToolCards(user) {
+    const toolsGrid = document.getElementById('toolsGrid')
     if (!toolsGrid) return
 
-    const adminCard = document.createElement('div')
-    adminCard.className = 'tool-card'
-    adminCard.onclick = () => window.location.href = '../admin/index.html'
-    adminCard.innerHTML = `
-        <div class="tool-icon">👤</div>
-        <div class="tool-title">Admin Panel</div>
-        <div class="tool-desc">Manage users and system settings</div>
-        <div class="tool-stat"></div>
-    `
+    let toolConfig = {}
+    try {
+        const cfg = await getAppConfig()
+        toolConfig = cfg?.tools || {}
+        // Apply accent colour
+        if (cfg?.app?.primaryColor) {
+            document.documentElement.style.setProperty('--color-primary', cfg.app.primaryColor)
+        }
+    } catch {}
 
-    // Insert admin card as the first tool
-    toolsGrid.insertBefore(adminCard, toolsGrid.firstChild)
+    toolsGrid.innerHTML = ''
+
+    // Render each enabled tool (in definition order)
+    for (const [key, meta] of Object.entries(TOOL_META)) {
+        if (key === 'admin') continue // handled separately below
+
+        const toolCfg = toolConfig[key]
+        // Hide if explicitly disabled
+        if (toolCfg && toolCfg.enabled === false) continue
+
+        const label = toolCfg?.label || meta.icon + ' ' + key
+        const desc  = toolCfg?.description || meta.desc
+        const statId = meta.statId ? `id="${meta.statId}"` : ''
+
+        const card = document.createElement('div')
+        card.className = 'tool-card'
+        card.onclick = () => window.location.href = meta.path
+        card.innerHTML = `
+            <div class="tool-icon">${meta.icon}</div>
+            <div class="tool-title">${label}</div>
+            <div class="tool-desc">${desc}</div>
+            <div class="tool-stat" ${statId}></div>
+        `
+        toolsGrid.appendChild(card)
+    }
+
+    // Admin card — only for admin users
+    if (isAdmin(user) && (!toolConfig.admin || toolConfig.admin.enabled !== false)) {
+        const adminLabel = toolConfig.admin?.label || 'Admin'
+        const adminDesc  = toolConfig.admin?.description || TOOL_META.admin.desc
+        const adminCard = document.createElement('div')
+        adminCard.className = 'tool-card'
+        adminCard.onclick = () => window.location.href = '../admin/index.html'
+        adminCard.innerHTML = `
+            <div class="tool-icon">👤</div>
+            <div class="tool-title">${adminLabel}</div>
+            <div class="tool-desc">${adminDesc}</div>
+            <div class="tool-stat"></div>
+        `
+        toolsGrid.appendChild(adminCard)
+    }
 }
 
 // Live clock update (module-level so pause/resume can reference it)
@@ -1789,7 +1836,7 @@ window.addEventListener('lowenergychange', () => {
 // ============================================================================
 
 const SCREENSAVER_TIMEOUT = 10 * 60 * 1000  // 10 minutes
-const SS_WIDGET_KEY = 'brandpack:screensaver:widgets'
+const SS_WIDGET_KEY = 'app:screensaver:widgets'
 const SS_ALL_WIDGETS = ['timeclock', 'todos', 'stats']
 const SS_DEFAULT_WIDGETS = ['timeclock', 'todos', 'stats']
 

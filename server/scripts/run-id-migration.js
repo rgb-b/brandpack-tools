@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function runMigration() {
-  const dbPath = path.join(__dirname, '../data/brandpack.db');
+  const dbPath = path.join(__dirname, '../data/app.db');
   const migrationPath = path.join(__dirname, '../migrations/update-inventory-ids.sql');
 
   console.log('=== Inventory ID Migration ===\n');

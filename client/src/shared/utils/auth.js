@@ -1,5 +1,5 @@
 /**
- * Authentication utilities for Brandpack Tools
+ * Authentication utilities
  * Handles user login, logout, and session management
  */
 

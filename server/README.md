@@ -1,6 +1,6 @@
-# Brandpack Tools Server
+# WorkBase Server
 
-Backend server for Brandpack Tools v3.0.0, providing RESTful API with SQLite database.
+Backend server for WorkBase v3.0.0, providing RESTful API with SQLite database.
 
 ## Setup
 

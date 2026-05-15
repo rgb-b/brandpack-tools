@@ -4,7 +4,7 @@
  */
 
 import { getCurrentUserFromCache, clearCurrentUserCache, isAdmin } from '../utils/auth.js'
-import { users } from '../../api/client.js'
+import { users, getAppConfig } from '../../api/client.js'
 import { theme } from '../utils/theme.js'
 import { lowEnergy } from '../utils/lowEnergy.js'
 import commandPalette from './CommandPalette.js'
@@ -14,15 +14,26 @@ import searchModal from './SearchModal.js'
 import commandRegistry from '../config/commands.js'
 
 export class AppHeader extends HTMLElement {
-  connectedCallback() {
-    const toolName = this.getAttribute('tool-name') || 'Brandpack Tools'
+  async connectedCallback() {
+    const toolName = this.getAttribute('tool-name') || ''
     const user = getCurrentUserFromCache()
-    const isLauncher = window.location.pathname.includes('/launcher/') || toolName === 'Dashboard'
+    const isLauncher = window.location.pathname.includes('/launcher/') || this.hasAttribute('full')
+
+    // Load app name from config (fast — cached in sessionStorage after first call)
+    let appName = 'WorkBase'
+    try {
+      const cfg = await getAppConfig()
+      appName = cfg?.app?.name || 'WorkBase'
+      // Apply accent colour if set
+      if (cfg?.app?.primaryColor) {
+        document.documentElement.style.setProperty('--color-primary', cfg.app.primaryColor)
+      }
+    } catch {}
 
     if (isLauncher) {
-      this.renderFullHeader(toolName, user)
+      this.renderFullHeader(toolName || appName, user, appName)
     } else {
-      this.renderSlimHeader(toolName, user)
+      this.renderSlimHeader(toolName || appName, user, appName)
     }
 
     if (user) this.setupUserMenu()
@@ -45,11 +56,11 @@ export class AppHeader extends HTMLElement {
     }
   }
 
-  renderFullHeader(toolName, user) {
+  renderFullHeader(toolName, user, appName = 'WorkBase') {
     this.innerHTML = `
       <header class="app-header">
         <div class="header-left">
-          <h1 class="text-gradient">Brandpack Tools</h1>
+          <h1 class="text-gradient">${appName}</h1>
           <p class="subtitle">${toolName}</p>
         </div>
         ${user ? `
@@ -117,7 +128,7 @@ export class AppHeader extends HTMLElement {
     `
   }
 
-  renderSlimHeader(toolName, user) {
+  renderSlimHeader(toolName, user, appName = 'WorkBase') { // eslint-disable-line no-unused-vars
     this.innerHTML = `
       <header class="app-header app-header--slim">
         <a href="../launcher/index.html" class="header-back">

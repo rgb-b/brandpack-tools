@@ -1,27 +1,27 @@
 {
-  "name": "brandpack-tools",
+  "name": "work-tools",
   "version": "3.0.0",
-  "description": "Brandpack Tools - Proofing Room Management Suite (Web Server Version)",
+  "description": "Self-hosted team management tools",
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev",
-    "dev:bg": "sudo systemctl start brandpack-dev && journalctl -u brandpack-dev -f",
-    "dev:stop": "sudo systemctl stop brandpack-dev",
+    "dev:bg": "sudo systemctl start work-tools-dev && journalctl -u work-tools-dev -f",
+    "dev:stop": "sudo systemctl stop work-tools-dev",
     "start": "cd server && npm start",
     "build": "cd client && npm run build",
     "install:all": "npm install && cd server && npm install && cd ../client && npm install",
     "migrate": "cd server && npm run migrate"
   },
   "keywords": [
-    "brandpack",
+    "work-tools",
     "proofing",
     "tools",
     "inventory",
     "maintenance"
   ],
-  "author": "Brandpack Australasia",
+  "author": "rgb-b",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"

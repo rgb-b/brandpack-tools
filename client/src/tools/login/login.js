@@ -5,8 +5,25 @@
 
 import { login } from '../../shared/utils/auth.js'
 import { setCurrentUserCache } from '../../shared/utils/storage.js'
+import { getAppConfig } from '../../api/client.js'
 import '../../shared/utils/cyberpunk-effects.js'
 import '../../shared/utils/lowEnergy.js'
+
+// Populate app name from config
+getAppConfig().then(cfg => {
+  const name = cfg?.app?.name || 'WorkBase'
+  const el = document.getElementById('loginAppName')
+  if (el) el.textContent = name
+  const setupTitle = document.getElementById('loginSetupTitle')
+  if (setupTitle) setupTitle.textContent = `Welcome to ${name}!`
+  document.title = `Login — ${name}`
+  if (cfg?.app?.primaryColor) {
+    document.documentElement.style.setProperty('--color-primary', cfg.app.primaryColor)
+  }
+}).catch(() => {
+  const el = document.getElementById('loginAppName')
+  if (el) el.textContent = 'WorkBase'
+})
 
 // Login state
 let pinValue = ''

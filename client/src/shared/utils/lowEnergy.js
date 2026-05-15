@@ -5,7 +5,7 @@
  * for Mac/low-RAM devices. Mirrors the theme.js pattern exactly.
  */
 
-const KEY = 'brandpack:lowEnergy'
+const KEY = 'app:lowEnergy'
 
 function get() {
   try { return localStorage.getItem(KEY) === 'true' }

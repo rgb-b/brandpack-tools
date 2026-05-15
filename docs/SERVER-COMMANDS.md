@@ -1,23 +1,23 @@
 # Server Commands
 
-## Production (`brandpack-tools.service`)
+## Production (`work-tools.service`)
 
 Serves the built frontend + API on port **8080** via `node src/server.js`.
 
 ```bash
-sudo systemctl start brandpack-tools       # Start
-sudo systemctl stop brandpack-tools        # Stop
-sudo systemctl restart brandpack-tools     # Restart
-sudo systemctl status brandpack-tools      # Status / health check
-sudo systemctl enable brandpack-tools      # Enable auto-start on boot
-sudo systemctl disable brandpack-tools     # Disable auto-start on boot
+sudo systemctl start work-tools       # Start
+sudo systemctl stop work-tools        # Stop
+sudo systemctl restart work-tools     # Restart
+sudo systemctl status work-tools      # Status / health check
+sudo systemctl enable work-tools      # Enable auto-start on boot
+sudo systemctl disable work-tools     # Disable auto-start on boot
 ```
 
 **Logs:**
 ```bash
-journalctl -u brandpack-tools -f           # Follow live logs
-journalctl -u brandpack-tools -n 100       # Last 100 lines
-journalctl -u brandpack-tools --since "1 hour ago"
+journalctl -u work-tools -f           # Follow live logs
+journalctl -u work-tools -n 100       # Last 100 lines
+journalctl -u work-tools --since "1 hour ago"
 ```
 
 ---
@@ -61,7 +61,7 @@ npm run dev:client      # Client only (port 5173, Vite)
 
 ## Notes
 
-- The service files live at the project root: `brandpack-tools.service` (prod) and `brandpack-dev.service` (dev).
+- The service files live at the project root: `work-tools.service` (prod) and `brandpack-dev.service` (dev).
 - If you update a `.service` file: `sudo systemctl daemon-reload` before restarting.
 - Production serves the built client from `client/dist/` — run `npm run build` first after frontend changes.
 - Sessions are stored in `server/data/sessions.db`; restarting the server does **not** log users out.

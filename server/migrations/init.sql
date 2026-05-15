@@ -1,5 +1,5 @@
 -- ============================================================================
--- Brandpack Tools Database Schema v3.0.0
+-- WorkBase Database Schema v3.0.0
 -- SQLite database schema for web server conversion
 -- ============================================================================
 

@@ -90,7 +90,7 @@ export const storage = {
 // SESSION CACHE HELPERS
 // ============================================================================
 
-const SESSION_USER_KEY = 'brandpack:currentUser'
+const SESSION_USER_KEY = 'app:currentUser'
 
 /**
  * Get current user from session cache

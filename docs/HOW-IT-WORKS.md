@@ -1,4 +1,4 @@
-# How Brandpack Tools Works
+# How WorkBase Works
 
 A plain-language overview of the system — how it's built, how it runs, and how the pieces connect.
 
@@ -6,7 +6,7 @@ A plain-language overview of the system — how it's built, how it runs, and how
 
 ## What Is It?
 
-Brandpack Tools is an internal web application that runs on a computer on the local network. Staff access it through a browser, just like a normal website, but it never goes to the internet — everything lives on that one machine. It's a collection of tools for the proofing room: inventory tracking, productivity logging, Pantone colour lookup, maintenance logging, and more.
+WorkBase is an internal web application that runs on a computer on the local network. Staff access it through a browser, just like a normal website, but it never goes to the internet — everything lives on that one machine. It's a collection of tools for the proofing room: inventory tracking, productivity logging, Pantone colour lookup, maintenance logging, and more.
 
 ---
 
@@ -22,7 +22,7 @@ This is a program running quietly in the background on the host machine. It does
 - **Handles logins and security.** When you log in, the server checks your username and PIN, and keeps track of who is currently signed in.
 - **Answers requests from the browser.** When a page needs to load some data (e.g. "show me all inventory items"), it asks the server, and the server fetches it from the database and sends it back.
 
-The server runs on **port 8080** and is always-on in production via a system service (`brandpack-tools.service`).
+The server runs on **port 8080** and is always-on in production via a system service (`work-tools.service`).
 
 ### 2. The Client (the "front end")
 
@@ -91,7 +91,7 @@ The intervals are deliberately kept short for active use (e.g. every 3 seconds f
 
 The app runs in two modes:
 
-**Production** — one process, the server, handles everything. It serves the pre-built frontend files and runs the API. Managed by systemd (`brandpack-tools.service`), starts automatically on boot.
+**Production** — one process, the server, handles everything. It serves the pre-built frontend files and runs the API. Managed by systemd (`work-tools.service`), starts automatically on boot.
 
 **Development** — two processes run together:
 - The server (with **nodemon**, which auto-restarts when code changes)
@@ -119,7 +119,7 @@ In dev, the frontend runs on port **5173** and the backend on **8080**. Vite tra
 ## File Layout (Simplified)
 
 ```
-brandpack-tools/
+work-tools/
 ├── server/               ← Backend (Node.js / Express)
 │   ├── src/
 │   │   ├── server.js     ← Entry point, starts everything
@@ -137,7 +137,7 @@ brandpack-tools/
 │       ├── tools/        ← One folder per tool (each is a full page)
 │       └── shared/       ← Shared components, styles, utilities
 │
-├── brandpack-tools.service   ← systemd production service
+├── work-tools.service   ← systemd production service
 └── brandpack-dev.service     ← systemd development service
 ```
 

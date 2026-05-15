@@ -33,7 +33,7 @@ Production serves the pre-built client from `client/dist/`. After any frontend c
 
 ```bash
 npm run build
-sudo systemctl restart brandpack-tools
+sudo systemctl restart work-tools
 ```
 
 ---
@@ -44,7 +44,7 @@ sudo systemctl restart brandpack-tools
 git pull
 npm run install:all     # only if package.json changed
 npm run build           # rebuild frontend
-sudo systemctl restart brandpack-tools
+sudo systemctl restart work-tools
 ```
 
 ---
@@ -85,7 +85,7 @@ curl http://localhost:8080/api/health
 
 **Service won't start:**
 ```bash
-sudo journalctl -u brandpack-tools -n 50
+sudo journalctl -u work-tools -n 50
 sudo lsof -i :8080          # check if port is in use
 ls -l server/data/brandpack.db   # check db file exists
 ```
@@ -93,7 +93,7 @@ ls -l server/data/brandpack.db   # check db file exists
 **Static files not loading (404s):**
 ```bash
 ls client/dist/             # verify build exists
-npm run build && sudo systemctl restart brandpack-tools
+npm run build && sudo systemctl restart work-tools
 ```
 
 **Sessions not persisting:**
@@ -117,7 +117,7 @@ npm run restore   # interactive restore from backup
 
 **Emergency rollback:**
 ```bash
-sudo systemctl stop brandpack-tools
+sudo systemctl stop work-tools
 cd server && npm run restore -- backups/backup-YYYY-MM-DD-HHMMSS.db
-sudo systemctl start brandpack-tools
+sudo systemctl start work-tools
 ```

@@ -8,7 +8,7 @@
     <script>
         (function() {
             try {
-                const theme = localStorage.getItem('brandpack:theme') || 'default';
+                const theme = localStorage.getItem('app:theme') || 'default';
                 document.documentElement.setAttribute('data-theme', theme);
             } catch (e) {
                 // localStorage unavailable, use default
@@ -17,7 +17,7 @@
         })();
     </script>
 
-    <title>Proofing Room Maintenance Tracker - Brandpack Tools</title>
+    <title>Maintenance</title>
     <link rel="stylesheet" href="../../shared/styles/theme.css">
     <link rel="stylesheet" href="../../shared/styles/base.css">
     <link rel="stylesheet" href="../../shared/styles/components.css">

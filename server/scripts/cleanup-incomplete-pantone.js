@@ -12,7 +12,7 @@ import { dirname, join } from 'path'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-const DB_PATH = join(__dirname, '../data/brandpack.db')
+const DB_PATH = join(__dirname, '../data/app.db')
 
 function cleanupIncompletePantone() {
   console.log('🔍 Scanning for incomplete Pantone entries...\n')

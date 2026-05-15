@@ -1,0 +1,18 @@
+{
+  "app": {
+    "name": "WorkBase",
+    "tagline": "Team management tools",
+    "primaryColor": "#ff6b35",
+    "logoText": "W"
+  },
+  "setup_complete": false,
+  "tools": {
+    "inventory":      { "enabled": true,  "label": "Inventory",      "description": "Track supplies and stock levels" },
+    "pantone":        { "enabled": false, "label": "Colour Library",  "description": "Colour matching and status tracker" },
+    "converter":      { "enabled": false, "label": "Converter",       "description": "LAB ↔ CMYK colour conversion" },
+    "maintenance":    { "enabled": true,  "label": "Maintenance",     "description": "Equipment issues and service log" },
+    "productivity-v4":{ "enabled": true,  "label": "Tasks",           "description": "Task tracking and time sessions" },
+    "admin":          { "enabled": true,  "label": "Admin",           "description": "User and PIN management" }
+  },
+  "equipment": []
+}

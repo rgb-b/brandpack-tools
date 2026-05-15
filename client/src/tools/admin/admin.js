@@ -6,29 +6,28 @@
 import '../../shared/components/AppHeader.js'
 import '../../shared/components/AppFooter.js'
 import { requireAuth, isAdmin } from '../../shared/utils/auth.js'
-import { users as usersAPI } from '../../api/client.js'
+import { users as usersAPI, equipment as equipmentAPI, config as configAPI, getAppConfig } from '../../api/client.js'
 import { formatDate } from '../../shared/utils/datetime.js'
 import '../../shared/utils/cyberpunk-effects.js'
 
 // State
 let currentUser = null
 let allUsers = []
+let allEquipment = []
+let appConfig = null
 
 // Initialize
 async function init() {
-    // Check authentication and admin privileges
-    currentUser = await requireAuth(true) // true = require admin
+    currentUser = await requireAuth(true)
     if (!currentUser) return
 
-    // Double-check admin status
     if (!isAdmin(currentUser)) {
         alert('Access denied. Administrator privileges required.')
         window.location.href = '../launcher/index.html'
         return
     }
 
-    // Load users and setup event listeners
-    await loadUsers()
+    await Promise.all([loadUsers(), loadEquipment(), loadAppSettings()])
     setupEventListeners()
 }
 
@@ -106,23 +105,150 @@ function updateStats() {
     document.getElementById('adminUsers').textContent = adminCount
 }
 
+// ── Equipment ─────────────────────────────────────────────────────────────────
+
+async function loadEquipment() {
+    try {
+        const res = await equipmentAPI.getAll()
+        allEquipment = res.data || []
+        renderEquipmentTable()
+    } catch {
+        document.getElementById('equipmentTableBody').innerHTML =
+            '<tr><td colspan="3" style="color:var(--color-error);text-align:center;padding:1rem">Failed to load equipment</td></tr>'
+    }
+}
+
+function renderEquipmentTable() {
+    const tbody = document.getElementById('equipmentTableBody')
+    if (!allEquipment.length) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--color-text-muted)">No equipment added yet</td></tr>'
+        return
+    }
+    tbody.innerHTML = allEquipment.map(e => `
+        <tr>
+            <td>${escapeHtml(e.name)}</td>
+            <td>${escapeHtml(e.category || '')}</td>
+            <td>
+                <button class="btn-icon btn-danger" onclick="window.adminApp.deleteEquipment(${e.id}, '${escapeHtml(e.name)}')" title="Delete">
+                    <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                </button>
+            </td>
+        </tr>
+    `).join('')
+}
+
+async function addEquipmentPrompt() {
+    const name = prompt('Equipment name:')
+    if (!name?.trim()) return
+    const category = prompt('Category (optional):') || 'General'
+    try {
+        await equipmentAPI.create({ name: name.trim(), category })
+        await loadEquipment()
+    } catch (e) {
+        showError(e.message || 'Failed to add equipment')
+    }
+}
+
+async function deleteEquipment(id, name) {
+    if (!confirm(`Delete equipment "${name}"?\n\nInventory items linked to this machine will keep their data but won't appear in the machine list.`)) return
+    try {
+        await equipmentAPI.delete(id)
+        await loadEquipment()
+    } catch (e) {
+        showError(e.message || 'Failed to delete equipment')
+    }
+}
+
+// ── App Settings ──────────────────────────────────────────────────────────────
+
+const TOOL_LABELS = {
+    inventory: 'Inventory',
+    'productivity-v4': 'Tasks',
+    maintenance: 'Maintenance',
+    pantone: 'Colour Library',
+    converter: 'Converter',
+    admin: 'Admin'
+}
+
+async function loadAppSettings() {
+    try {
+        appConfig = await getAppConfig()
+        const app = appConfig?.app || {}
+        document.getElementById('settingsAppName').value = app.name || ''
+        document.getElementById('settingsTagline').value = app.tagline || ''
+        document.getElementById('settingsColor').value = app.primaryColor || '#ff6b35'
+        document.getElementById('settingsColorHex').textContent = app.primaryColor || '#ff6b35'
+        renderToolToggles()
+    } catch {}
+}
+
+function renderToolToggles() {
+    const tools = appConfig?.tools || {}
+    const container = document.getElementById('settingsToolToggles')
+    container.innerHTML = Object.entries(TOOL_LABELS)
+        .filter(([k]) => k !== 'admin') // admin always on
+        .map(([key, label]) => {
+            const enabled = tools[key]?.enabled !== false
+            return `
+                <label style="display:flex;align-items:center;gap:var(--spacing-sm);cursor:pointer;font-size:var(--text-sm)">
+                    <input type="checkbox" ${enabled ? 'checked' : ''} data-tool="${key}"
+                        style="width:16px;height:16px;accent-color:var(--color-primary)">
+                    ${label}
+                </label>
+            `
+        }).join('')
+}
+
+async function saveSettings() {
+    const name = document.getElementById('settingsAppName').value.trim()
+    const tagline = document.getElementById('settingsTagline').value.trim()
+    const primaryColor = document.getElementById('settingsColor').value
+
+    if (!name) { showError('App name is required'); return }
+
+    // Collect tool toggles
+    const toolUpdates = {}
+    document.querySelectorAll('#settingsToolToggles input[data-tool]').forEach(input => {
+        const key = input.dataset.tool
+        toolUpdates[key] = { ...(appConfig?.tools?.[key] || {}), enabled: input.checked }
+    })
+
+    const btn = document.getElementById('saveSettingsBtn')
+    btn.disabled = true
+    btn.textContent = 'Saving…'
+
+    try {
+        await configAPI.save({ app: { name, tagline, primaryColor }, tools: toolUpdates })
+        sessionStorage.removeItem('app:config')
+        document.documentElement.style.setProperty('--color-primary', primaryColor)
+        const msg = document.getElementById('settingsMsg')
+        msg.textContent = '✓ Settings saved'
+        msg.className = 'alert alert-success'
+        msg.style.display = 'block'
+        setTimeout(() => { msg.style.display = 'none' }, 3000)
+    } catch (e) {
+        showError(e.message || 'Failed to save settings')
+    } finally {
+        btn.disabled = false
+        btn.textContent = 'Save Changes'
+    }
+}
+
+// ── Event Listeners ───────────────────────────────────────────────────────────
+
 // Setup event listeners
 function setupEventListeners() {
-    // Create user button
     document.getElementById('createUserBtn').addEventListener('click', openCreateModal)
-
-    // Modal controls
     document.getElementById('closeModalBtn').addEventListener('click', closeCreateModal)
     document.getElementById('cancelBtn').addEventListener('click', closeCreateModal)
-
-    // Form submission
     document.getElementById('createUserForm').addEventListener('submit', handleCreateUser)
-
-    // Click outside modal to close
+    document.getElementById('addEquipmentBtn').addEventListener('click', addEquipmentPrompt)
+    document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings)
+    document.getElementById('settingsColor').addEventListener('input', e => {
+        document.getElementById('settingsColorHex').textContent = e.target.value
+    })
     document.getElementById('createUserModal').addEventListener('click', (e) => {
-        if (e.target.id === 'createUserModal') {
-            closeCreateModal()
-        }
+        if (e.target.id === 'createUserModal') closeCreateModal()
     })
 }
 
@@ -252,7 +378,8 @@ function validatePINStrength(pin) {
 
 // Export functions to window for inline event handlers
 window.adminApp = {
-    deleteUser
+    deleteUser,
+    deleteEquipment
 }
 
 // Start the app

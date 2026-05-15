@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-const DB_PATH = join(__dirname, '../data/brandpack.db')
+const DB_PATH = join(__dirname, '../data/app.db')
 const MIGRATION_PATH = join(__dirname, '../migrations/006_productivity_v4_refactor.sql')
 
 console.log('🔄 Running Productivity V4 Migration...')

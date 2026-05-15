@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    (function() {
+      try { document.documentElement.setAttribute('data-theme', localStorage.getItem('app:theme') || 'default') }
+      catch(e) { document.documentElement.setAttribute('data-theme', 'default') }
+    })();
+  </script>
+  <title>Setup</title>
+  <link rel="stylesheet" href="../../shared/styles/theme.css">
+  <link rel="stylesheet" href="../../shared/styles/base.css">
+  <link rel="stylesheet" href="../../shared/styles/components.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: var(--spacing-lg);
+      background: var(--gradient-bg);
+    }
+
+    .setup-wrap {
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .setup-card {
+      background: var(--gradient-card);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-xl);
+      box-shadow: var(--shadow-xl);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    /* Progress bar */
+    .progress-bar {
+      display: flex;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-xl);
+    }
+    .progress-step {
+      flex: 1;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.1);
+      transition: background var(--transition-base);
+    }
+    .progress-step.active { background: var(--color-primary); }
+    .progress-step.done   { background: var(--color-success); }
+
+    /* Step header */
+    .step-header { text-align: center; margin-bottom: var(--spacing-xl); }
+    .step-icon { font-size: 3rem; margin-bottom: var(--spacing-md); }
+    .step-title {
+      font-size: var(--text-2xl);
+      font-weight: 700;
+      font-family: var(--font-display);
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: var(--spacing-xs);
+    }
+    .step-subtitle { color: var(--color-text-muted); }
+
+    /* Steps */
+    .step { display: none; }
+    .step.visible { display: block; }
+
+    /* Color swatch picker */
+    .color-swatches {
+      display: flex;
+      gap: var(--spacing-sm);
+      flex-wrap: wrap;
+      margin-top: var(--spacing-sm);
+    }
+    .swatch {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: border-color var(--transition-fast), transform var(--transition-fast);
+    }
+    .swatch:hover { transform: scale(1.1); }
+    .swatch.selected { border-color: white; }
+    .color-custom {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      margin-top: var(--spacing-sm);
+    }
+
+    /* Tool toggles */
+    .tool-list { display: flex; flex-direction: column; gap: var(--spacing-sm); }
+    .tool-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--spacing-md);
+      background: var(--color-bg-card);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .tool-toggle-info { flex: 1; }
+    .tool-toggle-name { font-weight: 600; font-size: var(--text-sm); }
+    .tool-toggle-desc { color: var(--color-text-muted); font-size: var(--text-xs); margin-top: 2px; }
+    .tool-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 99px;
+      background: rgba(255,107,53,0.2);
+      color: var(--color-primary);
+      margin-left: var(--spacing-sm);
+      vertical-align: middle;
+    }
+
+    /* Equipment list */
+    .equipment-list { display: flex; flex-direction: column; gap: var(--spacing-sm); margin-bottom: var(--spacing-md); }
+    .equipment-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: var(--color-bg-card);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .equipment-item-name { flex: 1; font-size: var(--text-sm); }
+    .equipment-item-cat { color: var(--color-text-muted); font-size: var(--text-xs); }
+    .equipment-add-row { display: flex; gap: var(--spacing-sm); }
+    .equipment-add-row .form-input { flex: 1; }
+
+    /* Navigation buttons */
+    .step-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-xl);
+    }
+    .step-nav .btn { flex: 1; }
+
+    /* Success */
+    .success-icon { font-size: 5rem; text-align: center; margin-bottom: var(--spacing-lg); }
+    .success-list { list-style: none; padding: 0; }
+    .success-list li {
+      padding: var(--spacing-sm) 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      color: var(--color-text-secondary);
+      font-size: var(--text-sm);
+    }
+    .success-list li::before { content: "✓ "; color: var(--color-success); }
+  </style>
+</head>
+<body>
+<div class="setup-wrap">
+  <div class="setup-card">
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-step active" data-step="0"></div>
+      <div class="progress-step" data-step="1"></div>
+      <div class="progress-step" data-step="2"></div>
+      <div class="progress-step" data-step="3"></div>
+      <div class="progress-step" data-step="4"></div>
+    </div>
+
+    <!-- Step 0: Welcome -->
+    <div class="step visible" id="step-0">
+      <div class="step-header">
+        <div class="step-icon">🛠️</div>
+        <h1 class="step-title">Welcome</h1>
+        <p class="step-subtitle">Let's set up your workspace in a few quick steps.</p>
+      </div>
+      <div class="step-nav">
+        <button class="btn btn-primary" onclick="goTo(1)">Get Started →</button>
+      </div>
+    </div>
+
+    <!-- Step 1: Branding -->
+    <div class="step" id="step-1">
+      <div class="step-header">
+        <div class="step-icon">🎨</div>
+        <h1 class="step-title">Name your app</h1>
+        <p class="step-subtitle">This appears everywhere in the UI.</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">App name</label>
+        <input type="text" id="appName" class="form-input" placeholder="e.g. Workshop Tools" maxlength="40">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tagline <span style="color:var(--color-text-muted)">(optional)</span></label>
+        <input type="text" id="appTagline" class="form-input" placeholder="e.g. All your tools in one place" maxlength="80">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Accent colour</label>
+        <div class="color-swatches" id="colorSwatches"></div>
+        <div class="color-custom">
+          <span style="color:var(--color-text-muted);font-size:var(--text-sm)">Custom:</span>
+          <input type="color" id="customColor" value="#ff6b35" style="width:40px;height:32px;border:none;background:none;cursor:pointer;padding:0;">
+          <span id="colorHex" style="font-size:var(--text-sm);color:var(--color-text-muted)">#ff6b35</span>
+        </div>
+      </div>
+      <div class="step-nav">
+        <button class="btn btn-secondary" onclick="goTo(0)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(2)">Next →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Tools -->
+    <div class="step" id="step-2">
+      <div class="step-header">
+        <div class="step-icon">🧰</div>
+        <h1 class="step-title">Choose your tools</h1>
+        <p class="step-subtitle">Enable only what you need. You can change this later in Admin.</p>
+      </div>
+      <div class="tool-list" id="toolList"></div>
+      <div class="step-nav">
+        <button class="btn btn-secondary" onclick="goTo(1)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(3)">Next →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Equipment -->
+    <div class="step" id="step-3">
+      <div class="step-header">
+        <div class="step-icon">⚙️</div>
+        <h1 class="step-title">Add your equipment</h1>
+        <p class="step-subtitle">Machines, printers, tools — anything you track inventory or maintenance for. You can add more later.</p>
+      </div>
+      <div class="equipment-list" id="equipmentList"></div>
+      <div class="equipment-add-row">
+        <input type="text" id="newEquipName" class="form-input" placeholder="Equipment name" maxlength="80">
+        <input type="text" id="newEquipCat" class="form-input" placeholder="Category (optional)" maxlength="40" style="max-width:160px">
+        <button class="btn btn-secondary" onclick="addEquipment()">Add</button>
+      </div>
+      <div class="step-nav">
+        <button class="btn btn-secondary" onclick="goTo(2)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(4)">Next →</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Admin user -->
+    <div class="step" id="step-4">
+      <div class="step-header">
+        <div class="step-icon">👤</div>
+        <h1 class="step-title">Create admin account</h1>
+        <p class="step-subtitle">This will be the first user. More accounts can be added later.</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input type="text" id="adminUsername" class="form-input" placeholder="e.g. admin" maxlength="40" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">PIN <span style="color:var(--color-text-muted)">(4–8 digits)</span></label>
+        <input type="password" id="adminPin" class="form-input" placeholder="Enter PIN" maxlength="8" inputmode="numeric" autocomplete="new-password">
+      </div>
+      <div id="setupError" class="alert alert-error" style="display:none"></div>
+      <div class="step-nav">
+        <button class="btn btn-secondary" onclick="goTo(3)">← Back</button>
+        <button class="btn btn-primary" id="finishBtn" onclick="finishSetup()">Finish Setup ✓</button>
+      </div>
+    </div>
+
+    <!-- Step 5: Done -->
+    <div class="step" id="step-5">
+      <div class="success-icon">🎉</div>
+      <div class="step-header">
+        <h1 class="step-title" id="doneTitle">You're all set!</h1>
+        <p class="step-subtitle">Your workspace is ready to use.</p>
+      </div>
+      <ul class="success-list" id="summaryList"></ul>
+      <div class="step-nav" style="margin-top:var(--spacing-xl)">
+        <a href="/src/tools/login/index.html" class="btn btn-primary" style="text-align:center">Go to Login →</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+<script type="module" src="./setup.js"></script>
+</body>
+</html>

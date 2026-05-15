@@ -1,8 +1,7 @@
 /**
- * Brandpack Tools Server
+ * App Server
  *
- * Express server providing RESTful API for Brandpack Tools.
- * Replaces localStorage with SQLite database backend.
+ * Express server providing RESTful API and serving the frontend.
  */
 
 import express from 'express'
@@ -14,9 +13,11 @@ import { dirname, join } from 'path'
 import { networkInterfaces } from 'os'
 import dotenv from 'dotenv'
 
-// Import database
+// Import database and config
 import { getDatabase, closeDatabase } from './config/database.js'
 import { startShiftScheduler, stopShiftScheduler } from './utils/shiftScheduler.js'
+import { getConfig } from './config/appConfig.js'
+import { setupGuard } from './middleware/setupGuard.js'
 
 // Load environment variables
 dotenv.config()
@@ -59,10 +60,11 @@ if (NODE_ENV === 'development') {
 }
 
 // Session middleware
-// Configure session with SQLite store for persistent authentication
-// Sessions expire after 24 hours of inactivity
 import { createSessionMiddleware } from './config/session.js'
 app.use(createSessionMiddleware())
+
+// Setup guard — redirect to /setup if first-run not complete
+app.use(setupGuard)
 
 // ============================================================================
 // DATABASE INITIALIZATION
@@ -124,23 +126,26 @@ app.get('/api/health', (req, res) => {
 
 // API version info
 app.get('/api/v1', (req, res) => {
+  const cfg = getConfig()
   res.json({
-    name: 'Brandpack Tools API',
+    name: `${cfg.app?.name || 'WorkBase'} API`,
     version: '3.0.0',
-    description: 'RESTful API for Brandpack Tools',
     endpoints: {
+      config: '/api/v1/config',
       inventory: '/api/v1/inventory',
       productivity: '/api/v1/productivity',
       productivityV4: '/api/v1/productivity/v4',
       pantone: '/api/v1/pantone',
       maintenance: '/api/v1/maintenance',
       dashboard: '/api/v1/dashboard',
+      equipment: '/api/v1/equipment',
       migration: '/api/v1/migration'
     }
   })
 })
 
 // Import and mount route handlers
+import configRoutes from './routes/config.js'
 import inventoryRoutes from './routes/inventory.js'
 import productivityRoutes from './routes/productivity.js'
 import productivityV4Routes from './routes/productivityV4.js'
@@ -150,7 +155,9 @@ import dashboardRoutes from './routes/dashboard.js'
 import migrationRoutes from './routes/migration.js'
 import usersRoutes from './routes/users.js'
 import searchRoutes from './routes/search.js'
+import equipmentRoutes from './routes/equipment.js'
 
+app.use('/api/v1/config', configRoutes)
 app.use('/api/v1/inventory', inventoryRoutes)
 app.use('/api/v1/productivity', productivityRoutes)
 app.use('/api/v1/productivity/v4', productivityV4Routes)
@@ -160,12 +167,13 @@ app.use('/api/v1/dashboard', dashboardRoutes)
 app.use('/api/v1/migration', migrationRoutes)
 app.use('/api/v1/users', usersRoutes)
 app.use('/api/v1/search', searchRoutes)
+app.use('/api/v1/equipment', equipmentRoutes)
 
 // ============================================================================
 // SERVE FRONTEND STATIC FILES
 // ============================================================================
 
-// Root redirect to launcher
+// Root: redirect to setup if needed, otherwise launcher
 app.get('/', (req, res) => {
   res.redirect('/src/tools/launcher/index.html')
 })
@@ -233,8 +241,9 @@ function getLocalIP() {
 const server = app.listen(PORT, HOST, () => {
   const localIP = getLocalIP()
 
+  const appName = getConfig().app?.name || 'WorkBase'
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-  console.log('🚀 Brandpack Tools Server Started')
+  console.log(`🚀 ${appName} Server Started`)
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
   console.log(`   Environment: ${NODE_ENV}`)
   console.log(`   Host: ${HOST}`)

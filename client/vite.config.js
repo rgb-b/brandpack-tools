@@ -19,6 +19,7 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
+        setup: resolve(__dirname, 'src/tools/setup/index.html'),
         login: resolve(__dirname, 'src/tools/login/index.html'),
         admin: resolve(__dirname, 'src/tools/admin/index.html'),
         launcher: resolve(__dirname, 'src/tools/launcher/index.html'),

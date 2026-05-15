@@ -16,7 +16,7 @@ if (!migrationFile) {
   process.exit(1)
 }
 
-const dbPath = join(__dirname, 'data', 'brandpack.db')
+const dbPath = join(__dirname, 'data', 'app.db')
 const migrationPath = join(__dirname, 'migrations', migrationFile)
 
 console.log(`Running migration: ${migrationFile}`)
