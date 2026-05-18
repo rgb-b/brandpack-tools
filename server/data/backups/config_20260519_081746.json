@@ -1,0 +1,18 @@
+{
+  "app": {
+    "name": "Brandpack Tools",
+    "tagline": "Proofing room management",
+    "primaryColor": "#ff6b35",
+    "logoText": "B"
+  },
+  "setup_complete": true,
+  "tools": {
+    "inventory":       { "enabled": true,  "label": "Inventory",      "description": "Track printer supplies, inks and media" },
+    "pantone":         { "enabled": true,  "label": "Colour Library",  "description": "Pantone match status for Roland press" },
+    "converter":       { "enabled": true,  "label": "Converter",       "description": "LAB ↔ CMYK colour conversion" },
+    "maintenance":     { "enabled": true,  "label": "Maintenance",     "description": "Equipment issues and service log" },
+    "productivity-v4": { "enabled": true,  "label": "Tasks",           "description": "Task tracking and time sessions" },
+    "admin":           { "enabled": true,  "label": "Admin",           "description": "User and PIN management" }
+  },
+  "equipment": []
+}
