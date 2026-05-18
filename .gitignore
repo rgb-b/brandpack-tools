@@ -56,3 +56,4 @@ server/downloads/
 cloudflared.deb
 config.dev.json
 server/.env.dev
+server/data/backups/
