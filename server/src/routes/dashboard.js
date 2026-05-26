@@ -225,58 +225,82 @@ router.get('/calendar', asyncHandler(async (req, res) => {
 
 /**
  * GET /api/v1/dashboard/maintenance-reminder
- * Get Weekly Roland Maintenance Reminder status
- * Returns status based on current day of week and last Roland VS300 maintenance log
+ * Returns maintenance status for all equipment, sorted by urgency.
+ * Each item includes: id, name, status, daysOverdue, daysUntilDue, lastCompleted, nextDue.
+ * Returns empty array if no equipment configured — client hides banner in that case.
  */
 router.get('/maintenance-reminder', asyncHandler(async (req, res) => {
   const db = await getDatabase()
 
-  // Get last Roland VS300 maintenance log
-  const lastLog = await MaintenanceLogs.getLastMaintenanceForMachine(db, ['Roland VS300'])
+  // Fetch all equipment with their maintenance intervals
+  const equipment = await new Promise((resolve, reject) => {
+    db.all(
+      'SELECT id, name, category, COALESCE(maintenance_interval_days, 7) AS interval_days FROM equipment ORDER BY name',
+      (err, rows) => err ? reject(err) : resolve(rows)
+    )
+  })
 
-  // Calculate status based on current date
+  if (!equipment.length) {
+    return res.json(success({ items: [], hasEquipment: false }))
+  }
+
   const today = new Date()
-  const dayOfWeek = today.getDay() // 0=Sunday, 5=Friday
+  today.setHours(0, 0, 0, 0)
 
-  // Find this week's Friday (due date)
-  const daysUntilFriday = (5 - dayOfWeek + 7) % 7
-  const thisFriday = new Date(today)
-  thisFriday.setDate(today.getDate() + daysUntilFriday)
-  thisFriday.setHours(0, 0, 0, 0)
+  const items = await Promise.all(equipment.map(async (equip) => {
+    // Get last maintenance log for this equipment
+    const lastLog = await MaintenanceLogs.getLastMaintenanceForMachine(db, [equip.name])
 
-  // Last Friday was the due date
-  const lastFriday = new Date(thisFriday)
-  if (today < thisFriday) lastFriday.setDate(lastFriday.getDate() - 7)
+    const intervalDays = equip.interval_days || 7
+    let lastDate = null
+    let nextDue = new Date(today)
 
-  let status = 'upcoming'
-  let daysOverdue = 0
-
-  // Check if completed this week
-  if (lastLog) {
-    const completedDate = new Date(lastLog.date)
-    completedDate.setHours(0, 0, 0, 0)
-    if (completedDate >= lastFriday) status = 'completed'
-  }
-
-  // Override if not completed
-  if (status !== 'completed') {
-    if (dayOfWeek === 5) {
-      status = 'due_today'
-    } else if (dayOfWeek > 5 || dayOfWeek === 0) {
-      status = 'overdue'
-      daysOverdue = dayOfWeek === 6 ? 1 : (dayOfWeek === 0 ? 2 : dayOfWeek - 5)
+    if (lastLog) {
+      lastDate = new Date(lastLog.date)
+      lastDate.setHours(0, 0, 0, 0)
+      nextDue = new Date(lastDate)
+      nextDue.setDate(lastDate.getDate() + intervalDays)
     }
-  }
 
-  res.json(success({
-    status,
-    lastCompleted: lastLog ? lastLog.date : null,
-    dueDate: lastFriday.toISOString().split('T')[0],
-    nextDue: thisFriday.toISOString().split('T')[0],
-    daysOverdue,
-    daysUntilDue: status === 'upcoming' ? daysUntilFriday : 0,
-    lastLog: lastLog || null
+    const msPerDay = 86400000
+    const diffDays = Math.round((nextDue - today) / msPerDay)
+
+    let status
+    let daysOverdue = 0
+    let daysUntilDue = 0
+
+    if (diffDays < 0) {
+      status = 'overdue'
+      daysOverdue = Math.abs(diffDays)
+    } else if (diffDays === 0) {
+      status = 'due_today'
+    } else if (diffDays <= 2) {
+      status = 'upcoming'
+      daysUntilDue = diffDays
+    } else {
+      status = 'ok'
+      daysUntilDue = diffDays
+    }
+
+    return {
+      id: equip.id,
+      name: equip.name,
+      category: equip.category,
+      intervalDays,
+      status,
+      daysOverdue,
+      daysUntilDue,
+      lastCompleted: lastLog ? lastLog.date : null,
+      nextDue: nextDue.toISOString().split('T')[0],
+      lastLog: lastLog || null
+    }
   }))
+
+  // Sort: overdue first, then due_today, upcoming, ok
+  const priority = { overdue: 0, due_today: 1, upcoming: 2, ok: 3 }
+  items.sort((a, b) => priority[a.status] - priority[b.status] || b.daysOverdue - a.daysOverdue)
+
+  res.json(success({ items, hasEquipment: true }))
 }))
 
 export default router

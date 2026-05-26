@@ -2463,16 +2463,16 @@
             </div>
         </div>
 
-        <!-- Weekly Roland Maintenance Reminder -->
+        <!-- Equipment Maintenance Reminder -->
         <div class="maintenance-reminder-banner hidden" id="maintenanceReminderBanner">
             <div class="reminder-banner-icon" id="reminderIcon">🔧</div>
             <div class="reminder-banner-content">
                 <div class="reminder-banner-header">
-                    <div class="reminder-banner-title">Weekly Roland VS300 Maintenance</div>
+                    <div class="reminder-banner-title" id="reminderTitle">Equipment Maintenance</div>
                     <span class="reminder-status-badge" id="reminderStatusBadge">Upcoming</span>
                 </div>
                 <div class="reminder-banner-message" id="reminderMessage">
-                    Weekly maintenance is due every Friday
+                    Maintenance is due
                 </div>
             </div>
             <div class="reminder-banner-action">
@@ -2567,7 +2567,7 @@
     <!-- Maintenance Log Modal -->
     <div id="maintenanceLogModal" class="modal" style="display: none;">
         <div class="modal-content" style="max-width: 600px; background: var(--color-bg-primary); border-radius: var(--radius-xl); padding: var(--spacing-lg);">
-            <h2 style="margin-bottom: var(--spacing-md);">Weekly Roland Maintenance Log</h2>
+            <h2 id="maintenanceLogModalTitle" style="margin-bottom: var(--spacing-md);">Maintenance Log</h2>
             <form id="maintenanceLogForm">
                 <div style="margin-bottom: var(--spacing-md);">
                     <label style="display: block; margin-bottom: var(--spacing-xs); font-weight: 600;">Date</label>

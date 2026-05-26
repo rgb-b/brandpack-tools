@@ -1132,59 +1132,72 @@ async function loadMaintenanceReminder() {
 
 function updateReminderUI(data) {
     const banner = document.getElementById('maintenanceReminderBanner')
+
+    // Hide if no equipment configured or all items are 'ok'
+    if (!data.hasEquipment || !data.items?.length) {
+        banner.classList.add('hidden')
+        return
+    }
+
+    // Show the most urgent item (items are already sorted by priority)
+    const item = data.items[0]
+
+    // Hide banner if everything is on schedule (ok status)
+    if (item.status === 'ok') {
+        banner.classList.add('hidden')
+        return
+    }
+
     banner.classList.remove('hidden')
 
     const statusConfig = {
         'upcoming': {
             icon: '🔧',
             badge: 'Upcoming',
-            message: `Due in ${data.daysUntilDue} days (Friday)`
+            message: `Due in ${item.daysUntilDue} day${item.daysUntilDue !== 1 ? 's' : ''}`
         },
         'due_today': {
             icon: '⚠️',
             badge: 'Due Today',
-            message: 'Weekly maintenance is due today'
+            message: 'Maintenance is due today'
         },
         'overdue': {
             icon: '🚨',
             badge: 'OVERDUE',
-            message: `${data.daysOverdue} days overdue!`
-        },
-        'completed': {
-            icon: '✅',
-            badge: 'Completed',
-            message: `Last: ${data.lastCompleted}. Next: ${data.nextDue}`
+            message: `${item.daysOverdue} day${item.daysOverdue !== 1 ? 's' : ''} overdue`
         }
     }
 
-    const config = statusConfig[data.status]
-    document.getElementById('reminderIcon').textContent = config.icon
-    document.getElementById('reminderStatusBadge').textContent = config.badge
-    document.getElementById('reminderStatusBadge').className = `reminder-status-badge ${data.status}`
-    document.getElementById('reminderMessage').textContent = config.message
-    document.getElementById('reminderActionBtn').textContent = data.status === 'completed' ? 'View Details' : 'Mark Complete'
+    const cfg = statusConfig[item.status] || statusConfig['upcoming']
+    document.getElementById('reminderTitle').textContent = `${item.name} Maintenance`
+    document.getElementById('reminderIcon').textContent = cfg.icon
+    document.getElementById('reminderStatusBadge').textContent = cfg.badge
+    document.getElementById('reminderStatusBadge').className = `reminder-status-badge ${item.status}`
+    document.getElementById('reminderMessage').textContent = cfg.message
+    document.getElementById('reminderActionBtn').textContent = 'Mark Complete'
 }
 
 async function handleReminderAction() {
     const data = dashboardState.maintenanceReminder
-    if (data.status === 'completed') {
-        const message = data.lastLog
-            ? `Last completed: ${data.lastLog.date}\n\nNotes: ${data.lastLog.notes || 'No notes'}`
-            : `Last completed: ${data.lastCompleted}`
-        alert(message)
-    } else {
-        openMaintenanceLogModal()
-    }
+    if (!data?.items?.length) return
+    openMaintenanceLogModal(data.items[0])
 }
 
-function openMaintenanceLogModal() {
+function openMaintenanceLogModal(equipmentItem) {
     const modal = document.getElementById('maintenanceLogModal')
     document.getElementById('logDate').value = new Date().toISOString().split('T')[0]
     const now = new Date()
     document.getElementById('logTime').value = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
-    modal.style.display = 'flex'
 
+    // Store equipment context on the form for submit
     const form = document.getElementById('maintenanceLogForm')
+    form.dataset.equipmentName = equipmentItem?.name || ''
+    form.dataset.equipmentId = equipmentItem?.id || ''
+
+    const title = document.getElementById('maintenanceLogModalTitle')
+    if (title) title.textContent = equipmentItem ? `${equipmentItem.name} — Maintenance Log` : 'Maintenance Log'
+
+    modal.style.display = 'flex'
     form.onsubmit = handleMaintenanceLogSubmit
 }
 
@@ -1195,11 +1208,13 @@ function closeMaintenanceLogModal() {
 async function handleMaintenanceLogSubmit(e) {
     e.preventDefault()
 
+    const form = document.getElementById('maintenanceLogForm')
+    const equipmentName = form.dataset.equipmentName
     const logData = {
         date: document.getElementById('logDate').value,
         time: document.getElementById('logTime').value || null,
-        machines: ['Roland VS300'],
-        description: 'Weekly Roland maintenance',
+        machines: equipmentName ? [equipmentName] : [],
+        description: equipmentName ? `${equipmentName} maintenance` : 'Scheduled maintenance',
         notes: document.getElementById('logNotes').value || null,
         performed_by: document.getElementById('logPerformedBy').value || null
     }

@@ -33,7 +33,7 @@ export class AppHeader extends HTMLElement {
     if (isLauncher) {
       this.renderFullHeader(toolName || appName, user, appName)
     } else {
-      this.renderSlimHeader(toolName || appName, user, appName)
+      this.renderSlimHeader(toolName || appName, user, appName, cfg)
     }
 
     if (user) this.setupUserMenu()
@@ -128,14 +128,28 @@ export class AppHeader extends HTMLElement {
     `
   }
 
-  renderSlimHeader(toolName, user, appName = 'WorkBase') { // eslint-disable-line no-unused-vars
+  renderSlimHeader(toolName, user, appName = 'WorkBase', cfg = null) {
+    // Build tool switcher links from config — only show enabled tools
+    const toolLinks = [
+      { key: 'inventory',        icon: '📦', label: 'Inventory',      path: '../inventory/index.html' },
+      { key: 'productivity-v4',  icon: '⏱️', label: 'Time Tracker',   path: '../productivity-v4/index.html' },
+      { key: 'pantone',          icon: '🎨', label: 'Colour Library', path: '../pantone/index.html' },
+      { key: 'converter',        icon: '🔀', label: 'Converter',      path: '../converter/index.html' },
+      { key: 'maintenance',      icon: '🔧', label: 'Maintenance',    path: '../maintenance/index.html' },
+    ]
+    const toolsConfig = cfg?.tools || {}
+    const enabledLinks = toolLinks
+      .filter(t => !toolsConfig[t.key] || toolsConfig[t.key].enabled !== false)
+      .map(t => `<a href="${t.path}" class="dropdown-item">${t.icon} ${toolsConfig[t.key]?.label || t.label}</a>`)
+      .join('')
+
     this.innerHTML = `
       <header class="app-header app-header--slim">
         <a href="../launcher/index.html" class="header-back">
           <svg viewBox="0 0 24 24"><path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
           Back
         </a>
-        <div class="header-slim-title text-gradient">${toolName}</div>
+        <div class="header-slim-title">${toolName}</div>
         ${user ? `
           <div class="header-right">
             <div class="header-actions">
@@ -144,11 +158,7 @@ export class AppHeader extends HTMLElement {
                   <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
                 </button>
                 <div class="tool-switcher-dropdown" id="toolSwitcherDropdown" style="display:none;">
-                  <a href="../inventory/index.html" class="dropdown-item">📦 Inventory System</a>
-                  <a href="../productivity-v4/index.html" class="dropdown-item">⏱️ Time Tracker</a>
-                  <a href="../pantone/index.html" class="dropdown-item">🎨 Pantone Tracker</a>
-                  <a href="../converter/index.html" class="dropdown-item">🔀 LAB-CMYK Converter</a>
-                  <a href="../maintenance/index.html" class="dropdown-item">🔧 Maintenance Tracker</a>
+                  ${enabledLinks}
                   ${isAdmin(user) ? '<a href="../admin/index.html" class="dropdown-item">👤 Admin Panel</a>' : ''}
                   <a href="../launcher/index.html" class="dropdown-item">🏠 Dashboard</a>
                 </div>
