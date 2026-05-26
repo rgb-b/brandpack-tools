@@ -97,6 +97,8 @@ getDatabase()
         () => resolve() // Ignore error — column already exists on up-to-date DBs
       )
     })
+    // Seed density profiles from Excel if table is empty
+    await seedIfEmpty(db)
     startShiftScheduler()
   })
   .catch((error) => {
@@ -156,6 +158,8 @@ import migrationRoutes from './routes/migration.js'
 import usersRoutes from './routes/users.js'
 import searchRoutes from './routes/search.js'
 import equipmentRoutes from './routes/equipment.js'
+import densityProfilesRoutes from './routes/densityProfiles.js'
+import { seedIfEmpty } from './utils/importDensityProfiles.js'
 
 app.use('/api/v1/config', configRoutes)
 app.use('/api/v1/inventory', inventoryRoutes)
@@ -168,6 +172,7 @@ app.use('/api/v1/migration', migrationRoutes)
 app.use('/api/v1/users', usersRoutes)
 app.use('/api/v1/search', searchRoutes)
 app.use('/api/v1/equipment', equipmentRoutes)
+app.use('/api/v1/density-profiles', densityProfilesRoutes)
 
 // ============================================================================
 // SERVE FRONTEND STATIC FILES

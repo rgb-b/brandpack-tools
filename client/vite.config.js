@@ -28,7 +28,8 @@ export default defineConfig({
         'productivity-v4': resolve(__dirname, 'src/tools/productivity-v4/index.html'),
         pantone: resolve(__dirname, 'src/tools/pantone/index.html'),
         converter: resolve(__dirname, 'src/tools/converter/index.html'),
-        maintenance: resolve(__dirname, 'src/tools/maintenance/index.html')
+        maintenance: resolve(__dirname, 'src/tools/maintenance/index.html'),
+        'density-profiles': resolve(__dirname, 'src/tools/density-profiles/index.html')
       }
     }
   }
