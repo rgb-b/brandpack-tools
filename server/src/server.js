@@ -160,6 +160,7 @@ import searchRoutes from './routes/search.js'
 import equipmentRoutes from './routes/equipment.js'
 import densityProfilesRoutes from './routes/densityProfiles.js'
 import { seedIfEmpty } from './utils/importDensityProfiles.js'
+import inkDensityRoutes from './routes/inkDensity.js'
 
 app.use('/api/v1/config', configRoutes)
 app.use('/api/v1/inventory', inventoryRoutes)
@@ -173,6 +174,7 @@ app.use('/api/v1/users', usersRoutes)
 app.use('/api/v1/search', searchRoutes)
 app.use('/api/v1/equipment', equipmentRoutes)
 app.use('/api/v1/density-profiles', densityProfilesRoutes)
+app.use('/api/v1/ink-density', inkDensityRoutes)
 
 // ============================================================================
 // SERVE FRONTEND STATIC FILES

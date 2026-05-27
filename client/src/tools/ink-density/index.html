@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (function() {
+            try {
+                const theme = localStorage.getItem('app:theme') || 'default';
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'default');
+            }
+        })();
+    </script>
+    <title>Ink Density</title>
+    <link rel="stylesheet" href="../../shared/styles/theme.css">
+    <link rel="stylesheet" href="../../shared/styles/base.css">
+    <link rel="stylesheet" href="../../shared/styles/components.css">
+    <style>
+        body { min-height: 100vh; overflow: hidden; }
+
+        /* ── App layout ── */
+        .id-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            height: calc(100vh - 52px);
+            margin-top: 52px;
+        }
+
+        /* ── Job list sidebar ── */
+        .id-sidebar {
+            background: var(--color-bg-card);
+            border-right: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .id-sidebar-header {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .id-sidebar-title {
+            font-size: var(--text-xs);
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--color-text-muted);
+        }
+
+        .job-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--spacing-sm);
+        }
+
+        .job-item {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background var(--transition-fast);
+            margin-bottom: 2px;
+        }
+        .job-item:hover { background: var(--color-bg-hover); }
+        .job-item.active { background: rgba(var(--color-primary-rgb, 99,102,241),0.15); border-left: 2px solid var(--color-primary); padding-left: calc(var(--spacing-md) - 2px); }
+
+        .job-item-name {
+            font-size: var(--text-sm);
+            font-weight: 600;
+            color: var(--color-text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .job-item-meta {
+            font-size: var(--text-xs);
+            color: var(--color-text-muted);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ── Main editor area ── */
+        .id-main {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Toolbar */
+        .id-toolbar {
+            height: 44px;
+            background: var(--color-bg-card);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            padding: 0 var(--spacing-lg);
+            gap: var(--spacing-sm);
+            flex-shrink: 0;
+        }
+
+        .id-toolbar .job-title-display {
+            font-size: var(--text-sm);
+            font-weight: 600;
+            color: var(--color-text-muted);
+            flex: 1;
+        }
+
+        /* Two-panel editor */
+        .id-editor {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            overflow: hidden;
+        }
+
+        /* Left: metadata fields */
+        .id-meta-panel {
+            padding: var(--spacing-lg);
+            overflow-y: auto;
+            border-right: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .meta-section-title {
+            font-size: var(--text-xs);
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--color-text-muted);
+        }
+
+        .meta-field { display: flex; flex-direction: column; gap: 4px; }
+        .meta-field label { font-size: var(--text-xs); color: var(--color-text-muted); font-weight: 600; }
+        .meta-field input,
+        .meta-field select {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--color-bg-hover);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--radius-sm);
+            color: var(--color-text-primary);
+            font-size: var(--text-sm);
+        }
+        .meta-field input:focus,
+        .meta-field select:focus { outline: none; border-color: var(--color-primary-light); }
+
+        .meta-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm); }
+
+        /* Ink channel chips */
+        .ink-chips { display: flex; flex-wrap: wrap; gap: var(--spacing-xs); }
+        .ink-chip {
+            display: flex; align-items: center; gap: 4px;
+            padding: 3px 8px;
+            border-radius: var(--radius-sm);
+            font-size: var(--text-xs);
+            font-weight: 600;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            cursor: default;
+        }
+        .ink-chip.cmyk-c { border-color: rgba(91,184,212,0.4); color: #5bb8d4; }
+        .ink-chip.cmyk-m { border-color: rgba(224,90,138,0.4); color: #e05a8a; }
+        .ink-chip.cmyk-y { border-color: rgba(212,184,74,0.4); color: #d4b84a; }
+        .ink-chip.cmyk-k { border-color: rgba(148,163,184,0.4); color: var(--color-text-muted); }
+        .ink-chip.cmyk-w { border-color: rgba(241,245,249,0.3); color: #f1f5f9; }
+        .ink-chip.cmyk-spot { border-color: rgba(196,181,253,0.4); color: #c4b5fd; }
+        .ink-chip-remove { cursor: pointer; opacity: 0.5; font-size: 11px; }
+        .ink-chip-remove:hover { opacity: 1; }
+
+        /* Right: shape tabs + grid */
+        .id-grid-panel {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Shape tab bar */
+        .shape-tabs {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            overflow-x: auto;
+            flex-shrink: 0;
+            background: var(--color-bg-card);
+        }
+        .shape-tab {
+            padding: 4px 12px;
+            border-radius: var(--radius-sm);
+            font-size: var(--text-xs);
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            color: var(--color-text-muted);
+            border: 1px solid transparent;
+            transition: all var(--transition-fast);
+        }
+        .shape-tab:hover { background: var(--color-bg-hover); color: var(--color-text-primary); }
+        .shape-tab.active { background: var(--color-bg-hover); color: var(--color-text-primary); border-color: rgba(255,255,255,0.12); }
+        .shape-tab-add {
+            padding: 4px 8px;
+            font-size: 14px;
+            cursor: pointer;
+            color: var(--color-text-muted);
+            border-radius: var(--radius-sm);
+            border: 1px dashed rgba(255,255,255,0.15);
+            transition: all var(--transition-fast);
+        }
+        .shape-tab-add:hover { color: var(--color-text-primary); border-color: rgba(255,255,255,0.3); }
+
+        /* LPI weight tabs */
+        .weight-tabs {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            padding: var(--spacing-xs) var(--spacing-md);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            overflow-x: auto;
+            flex-shrink: 0;
+        }
+        .weight-tab {
+            padding: 2px 10px;
+            border-radius: var(--radius-sm);
+            font-size: var(--text-xs);
+            font-family: var(--font-mono);
+            cursor: pointer;
+            white-space: nowrap;
+            color: var(--color-text-muted);
+            border: 1px solid transparent;
+            transition: all var(--transition-fast);
+        }
+        .weight-tab:hover { background: var(--color-bg-hover); }
+        .weight-tab.active { background: rgba(255,255,255,0.08); color: var(--color-text-primary); border-color: rgba(255,255,255,0.1); }
+        .weight-tab-add {
+            padding: 2px 6px; font-size: 13px; cursor: pointer;
+            color: var(--color-text-muted); border-radius: var(--radius-sm);
+            border: 1px dashed rgba(255,255,255,0.12);
+        }
+        .weight-tab-add:hover { color: var(--color-text-primary); }
+
+        /* Data grid */
+        .grid-area {
+            flex: 1;
+            overflow: auto;
+            padding: var(--spacing-md);
+        }
+
+        .density-grid {
+            border-collapse: collapse;
+            font-size: 12px;
+            font-family: var(--font-mono);
+            background: var(--color-bg-card);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+        .density-grid th {
+            background: rgba(15,23,42,0.8);
+            color: #94a3b8;
+            padding: 5px 10px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255,255,255,0.07);
+            white-space: nowrap;
+        }
+        .density-grid th.row-header { text-align: left; padding-left: 10px; }
+        .density-grid th.ink-c  { color: #5bb8d4; }
+        .density-grid th.ink-m  { color: #e05a8a; }
+        .density-grid th.ink-y  { color: #d4b84a; }
+        .density-grid th.ink-k  { color: #94a3b8; }
+        .density-grid th.ink-w  { color: #f1f5f9; }
+        .density-grid th.ink-spot { color: #c4b5fd; }
+        .density-grid th.col-avg { color: #86efac; }
+        .density-grid th.col-dev { color: #a5b4fc; }
+        .density-grid th.col-target { color: #64748b; background: rgba(10,15,30,0.6); }
+
+        .density-grid td {
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 0;
+        }
+        .density-grid td.row-label {
+            padding: 3px 10px;
+            color: var(--color-text-muted);
+            font-size: 11px;
+            font-family: var(--font-mono);
+            white-space: nowrap;
+            background: rgba(255,255,255,0.02);
+            min-width: 50px;
+        }
+        .density-grid tr.density-row td.row-label { font-weight: 700; color: var(--color-text-primary); background: rgba(255,255,255,0.04); }
+        .density-grid td.calc-cell {
+            padding: 2px 6px;
+            font-size: 11px;
+            text-align: right;
+            color: var(--color-text-muted);
+            min-width: 44px;
+        }
+        .density-grid td.col-avg { color: #86efac; }
+        .density-grid td.col-dev-good { background: rgba(22,101,52,0.25); color: #86efac; }
+        .density-grid td.col-dev-ok   { background: rgba(113,63,18,0.25); color: #fbbf24; }
+        .density-grid td.col-dev-bad  { background: rgba(153,27,27,0.25); color: #fca5a5; }
+        .density-grid td.col-target   { background: rgba(15,23,42,0.5); color: #64748b; font-style: italic; padding: 2px 6px; font-size: 11px; text-align: right; }
+
+        .cell-input {
+            width: 68px;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            padding: 4px 6px;
+            color: var(--color-text-primary);
+            text-align: right;
+            display: block;
+        }
+        .cell-input:focus {
+            background: rgba(99,102,241,0.1);
+            outline: 1px solid var(--color-primary-light);
+            outline-offset: -1px;
+            border-radius: 2px;
+        }
+        .cell-input[readonly] { color: var(--color-text-muted); cursor: default; }
+        .cell-input.has-value { color: var(--color-text-primary); }
+
+        /* Empty state */
+        .id-empty {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-md);
+            color: var(--color-text-muted);
+        }
+        .id-empty p { font-size: var(--text-sm); }
+
+        /* Add shape/weight modal */
+        .id-modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 200;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .id-modal-overlay[hidden] { display: none; }
+        .id-modal {
+            background: var(--color-bg-card);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: var(--radius-md);
+            width: 340px;
+            padding: var(--spacing-lg);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+        .id-modal h3 { font-size: var(--text-sm); font-weight: 700; color: var(--color-text-primary); }
+        .id-modal .modal-fields { display: flex; flex-direction: column; gap: var(--spacing-sm); }
+        .id-modal .modal-actions { display: flex; gap: var(--spacing-sm); justify-content: flex-end; }
+    </style>
+</head>
+<body>
+    <app-header tool-name="Ink Density"></app-header>
+
+    <div class="id-layout">
+        <!-- Sidebar: job list -->
+        <aside class="id-sidebar">
+            <div class="id-sidebar-header">
+                <span class="id-sidebar-title">Jobs</span>
+                <button class="btn btn-primary btn-sm" id="btnNewJob">+ New</button>
+            </div>
+            <div class="job-list" id="jobList">
+                <div style="padding: var(--spacing-md); color: var(--color-text-muted); font-size: var(--text-sm);">Loading…</div>
+            </div>
+        </aside>
+
+        <!-- Main editor -->
+        <main class="id-main" id="mainArea">
+            <div class="id-empty" id="emptyState">
+                <p>Select a job or create a new one</p>
+                <button class="btn btn-primary" id="btnNewJobEmpty">+ New Job</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add shape modal -->
+    <div class="id-modal-overlay" id="modalAddShape" hidden>
+        <div class="id-modal">
+            <h3>Add Shape</h3>
+            <div class="modal-fields">
+                <div class="meta-field">
+                    <label>Dot Type</label>
+                    <input type="text" id="modalDotType" placeholder="e.g. CRS, HD, QUA">
+                </div>
+                <div class="meta-field">
+                    <label>Dot Number</label>
+                    <input type="text" id="modalDotNumber" placeholder="e.g. 501 (optional)">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost btn-sm" id="btnModalShapeCancel">Cancel</button>
+                <button class="btn btn-primary btn-sm" id="btnModalShapeAdd">Add Shape</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add weight (LPI) modal -->
+    <div class="id-modal-overlay" id="modalAddWeight" hidden>
+        <div class="id-modal">
+            <h3>Add LPI</h3>
+            <div class="modal-fields">
+                <div class="meta-field">
+                    <label>LPI Label</label>
+                    <input type="text" id="modalLpi" placeholder="e.g. 120#, 150#, 200#">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost btn-sm" id="btnModalWeightCancel">Cancel</button>
+                <button class="btn btn-primary btn-sm" id="btnModalWeightAdd">Add LPI</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add ink modal -->
+    <div class="id-modal-overlay" id="modalAddInk" hidden>
+        <div class="id-modal">
+            <h3>Add Ink</h3>
+            <div class="modal-fields">
+                <div class="meta-field">
+                    <label>Kind</label>
+                    <select id="modalInkKind">
+                        <option value="spot">Spot / PMS</option>
+                        <option value="white">White</option>
+                        <option value="cyan">Cyan</option>
+                        <option value="magenta">Magenta</option>
+                        <option value="yellow">Yellow</option>
+                        <option value="black">Black</option>
+                    </select>
+                </div>
+                <div class="meta-field">
+                    <label>Name</label>
+                    <input type="text" id="modalInkName" placeholder="e.g. PMS 485, W">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost btn-sm" id="btnModalInkCancel">Cancel</button>
+                <button class="btn btn-primary btn-sm" id="btnModalInkAdd">Add Ink</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./ink-density.js"></script>
+</body>
+</html>

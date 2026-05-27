@@ -29,7 +29,8 @@ export default defineConfig({
         pantone: resolve(__dirname, 'src/tools/pantone/index.html'),
         converter: resolve(__dirname, 'src/tools/converter/index.html'),
         maintenance: resolve(__dirname, 'src/tools/maintenance/index.html'),
-        'density-profiles': resolve(__dirname, 'src/tools/density-profiles/index.html')
+        'density-profiles': resolve(__dirname, 'src/tools/density-profiles/index.html'),
+        'ink-density': resolve(__dirname, 'src/tools/ink-density/index.html')
       }
     }
   }

@@ -13,7 +13,8 @@
     "maintenance":    { "enabled": true,  "label": "Maintenance",     "description": "Equipment issues and service log" },
     "productivity-v4":{ "enabled": true,  "label": "Tasks",           "description": "Task tracking and time sessions" },
     "admin":          { "enabled": true,  "label": "Admin",           "description": "User and PIN management" },
-    "density-profiles":{ "enabled": false, "label": "Density Profiles", "description": "CMYK press profile nearest-match search" }
+    "density-profiles":{ "enabled": false, "label": "Density Profiles", "description": "CMYK press profile nearest-match search" },
+    "ink-density":     { "enabled": false, "label": "Ink Density",      "description": "Press density recording and report export" }
   },
   "equipment": []
 }
