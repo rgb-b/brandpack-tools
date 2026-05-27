@@ -21,8 +21,9 @@ export class AppHeader extends HTMLElement {
 
     // Load app name from config (fast — cached in sessionStorage after first call)
     let appName = 'WorkBase'
+    let cfg = null
     try {
-      const cfg = await getAppConfig()
+      cfg = await getAppConfig()
       appName = cfg?.app?.name || 'WorkBase'
       // Apply accent colour if set
       if (cfg?.app?.primaryColor) {
@@ -131,11 +132,13 @@ export class AppHeader extends HTMLElement {
   renderSlimHeader(toolName, user, appName = 'WorkBase', cfg = null) {
     // Build tool switcher links from config — only show enabled tools
     const toolLinks = [
-      { key: 'inventory',        icon: '📦', label: 'Inventory',      path: '../inventory/index.html' },
-      { key: 'productivity-v4',  icon: '⏱️', label: 'Time Tracker',   path: '../productivity-v4/index.html' },
-      { key: 'pantone',          icon: '🎨', label: 'Colour Library', path: '../pantone/index.html' },
-      { key: 'converter',        icon: '🔀', label: 'Converter',      path: '../converter/index.html' },
-      { key: 'maintenance',      icon: '🔧', label: 'Maintenance',    path: '../maintenance/index.html' },
+      { key: 'inventory',         icon: '📦', label: 'Inventory',        path: '../inventory/index.html' },
+      { key: 'productivity-v4',   icon: '⏱️', label: 'Time Tracker',     path: '../productivity-v4/index.html' },
+      { key: 'pantone',           icon: '🎨', label: 'Colour Library',   path: '../pantone/index.html' },
+      { key: 'converter',         icon: '🔀', label: 'Converter',        path: '../converter/index.html' },
+      { key: 'maintenance',       icon: '🔧', label: 'Maintenance',      path: '../maintenance/index.html' },
+      { key: 'density-profiles',  icon: '🎯', label: 'Density Profiles', path: '../density-profiles/index.html' },
+      { key: 'ink-density',       icon: '🖨️', label: 'Ink Density',      path: '../ink-density/index.html' },
     ]
     const toolsConfig = cfg?.tools || {}
     const enabledLinks = toolLinks

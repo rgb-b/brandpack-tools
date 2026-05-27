@@ -250,6 +250,9 @@ function renderIssueCard(issue) {
             </div>
 
             <div style="margin-top: var(--spacing-md); display: flex; gap: var(--spacing-sm);">
+                ${issue.status !== 'resolved' && issue.status !== 'closed' ? `
+                <button class="btn btn-success btn-small" onclick="window.maintenanceApp.markIssueComplete(${issue.id})">✓ Mark Complete</button>
+                ` : ''}
                 <button class="btn btn-secondary btn-small" onclick="window.maintenanceApp.editIssue(${issue.id})">Edit</button>
                 <button class="btn btn-danger btn-small" onclick="window.maintenanceApp.deleteIssue(${issue.id})">Delete</button>
             </div>
@@ -585,6 +588,37 @@ async function deleteIssue(issueId) {
 
 function editIssue(issueId) {
     openIssueModal(issueId)
+}
+
+async function markIssueComplete(issueId) {
+    const issue = state.issues.find(i => i.id === issueId)
+    if (!issue) return
+
+    // Mark issue as resolved in the API
+    try {
+        await maintenance.updateIssue(issueId, { ...issue, status: 'resolved', resolved_at: new Date().toISOString().split('T')[0] })
+        await loadIssues()
+        renderIssuesTab()
+    } catch (error) {
+        console.error('Error resolving issue:', error)
+        alert('Failed to resolve issue: ' + error.message)
+        return
+    }
+
+    // Switch to Maintenance Log tab and open a new log entry pre-filled with issue context
+    switchTab('maintenance')
+    await loadLogs()
+    renderMaintenanceTab()
+
+    const modal = document.getElementById('logModal')
+    const form = document.getElementById('logForm')
+    const modalTitle = modal.querySelector('.modal-header h2')
+    state.editingLog = null
+    modalTitle.textContent = 'Log Maintenance'
+    form.reset()
+    document.getElementById('logDate').value = new Date().toISOString().split('T')[0]
+    document.getElementById('logDescription').value = `Resolved: ${issue.machine} — ${issue.description}`
+    modal.style.display = 'flex'
 }
 
 // ============================================================================
@@ -1071,6 +1105,7 @@ window.maintenanceApp = {
     filterIssues: applyIssueFilters,
     editIssue,
     deleteIssue,
+    markIssueComplete,
     // Visits
     openVisitModal,
     closeVisitModal,

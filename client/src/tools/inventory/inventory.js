@@ -1393,39 +1393,10 @@ function renderMachineSelectionView() {
 
   if (printers.length === 0) {
     return `
-      <div class="empty-state" style="text-align: center; padding: 60px 20px;">
-        <div style="font-size: 64px; margin-bottom: 20px;">🏭</div>
-        <h3 style="margin: 0 0 12px 0; font-size: 24px; color: var(--color-text-primary);">No machines set up yet</h3>
-        <p style="margin: 0 0 32px 0; color: var(--color-text-secondary); font-size: 16px;">
-          Add a machine to start managing its inventory, or load sample data to see how it works
-        </p>
-        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-          <button
-            class="btn-primary"
-            onclick="window.inventoryApp.showAddMachineModal()"
-            style="padding: 14px 28px; font-size: 16px; display: flex; align-items: center; gap: 8px;"
-          >
-            <span style="font-size: 20px;">➕</span>
-            Add New Machine
-          </button>
-          <button
-            class="btn-secondary"
-            onclick="window.inventoryApp.loadSampleData()"
-            style="padding: 14px 28px; font-size: 16px; display: flex; align-items: center; gap: 8px;"
-          >
-            <span style="font-size: 20px;">📦</span>
-            Load Sample Data
-          </button>
-        </div>
-        <div style="margin-top: 32px; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 12px; max-width: 600px; margin-left: auto; margin-right: auto;">
-          <p style="margin: 0 0 12px 0; font-weight: 600; color: var(--color-primary-light);">Sample Data Includes:</p>
-          <ul style="margin: 0; padding-left: 20px; text-align: left; color: var(--color-text-secondary);">
-            <li>2 machines (Epson 9900/WT7900, Roland VS300)</li>
-            <li>25+ items across both machines</li>
-            <li>Inks, media, laminate, and maintenance supplies</li>
-            <li>All items include barcodes for testing</li>
-          </ul>
-        </div>
+      <div class="empty-state" style="padding: 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <span style="color: var(--color-text-secondary);">🏭 No machines set up yet.</span>
+        <button class="btn-primary btn-sm" onclick="window.inventoryApp.showAddMachineModal()">+ Add Machine</button>
+        <button class="btn-secondary btn-sm" onclick="window.inventoryApp.loadSampleData()">Load Sample Data</button>
       </div>
     `
   }
@@ -1658,19 +1629,9 @@ function renderInventoryView() {
   // Show message if search returns no results
   if (items.length > 0 && filteredItems.length === 0) {
     return `
-      <div class="empty-state" style="text-align: center; padding: 60px 20px;">
-        <div style="font-size: 64px; margin-bottom: 20px;">🔍</div>
-        <h3 style="margin: 0 0 12px 0; font-size: 24px; color: var(--color-text-primary);">No items match your search</h3>
-        <p style="margin: 0 0 24px 0; color: var(--color-text-secondary); font-size: 16px;">
-          Try a different search term or clear the search
-        </p>
-        <button
-          class="btn-secondary"
-          onclick="window.inventoryApp.clearSearch()"
-          style="padding: 12px 24px; font-size: 16px;"
-        >
-          Clear Search
-        </button>
+      <div class="empty-state" style="padding: 16px; display: flex; align-items: center; gap: 12px;">
+        <span style="color: var(--color-text-secondary);">🔍 No items match your search.</span>
+        <button class="btn-secondary btn-sm" onclick="window.inventoryApp.clearSearch()">Clear Search</button>
       </div>
     `
   }
@@ -1679,62 +1640,19 @@ function renderInventoryView() {
     // If a machine is selected but has no items
     if (selectedPrinter) {
       return `
-        <div class="empty-state" style="text-align: center; padding: 60px 20px;">
-          <div style="font-size: 64px; margin-bottom: 20px;">📦</div>
-          <h3 style="margin: 0 0 12px 0; font-size: 24px; color: var(--color-text-primary);">
-            No items for ${selectedPrinter}
-          </h3>
-          <p style="margin: 0 0 32px 0; color: var(--color-text-secondary); font-size: 16px;">
-            Add items to start managing inventory for this machine
-          </p>
-          <button
-            class="btn-primary"
-            onclick="window.inventoryApp.showAddItemModal()"
-            style="padding: 14px 28px; font-size: 16px;"
-          >
-            + Add Item for ${selectedPrinter}
-          </button>
+        <div class="empty-state" style="padding: 16px; display: flex; align-items: center; gap: 12px;">
+          <span style="color: var(--color-text-secondary);">📦 No items for ${selectedPrinter}.</span>
+          <button class="btn-primary btn-sm" onclick="window.inventoryApp.showAddItemModal()">+ Add Item</button>
         </div>
       `
     }
 
     // No machines at all - shouldn't happen since we show machine selection first
     return `
-      <div class="empty-state" style="text-align: center; padding: 60px 20px;">
-        <div style="font-size: 64px; margin-bottom: 20px;">📦</div>
-        <h3 style="margin: 0 0 12px 0; font-size: 24px; color: var(--color-text-primary);">No inventory items yet</h3>
-        <p style="margin: 0 0 32px 0; color: var(--color-text-secondary); font-size: 16px;">
-          Get started by loading sample data or adding items manually
-        </p>
-        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-          <button
-            class="btn-primary"
-            onclick="window.inventoryApp.loadSampleData()"
-            style="padding: 14px 28px; font-size: 16px; display: flex; align-items: center; gap: 8px;"
-          >
-            <span style="font-size: 20px;">📦</span>
-            Load Sample Data (25+ items)
-          </button>
-          <button
-            class="btn-secondary"
-            onclick="window.inventoryApp.showAddItemModal()"
-            style="padding: 14px 28px; font-size: 16px; display: flex; align-items: center; gap: 8px;"
-          >
-            <span style="font-size: 20px;">➕</span>
-            Add Item Manually
-          </button>
-        </div>
-        <div style="margin-top: 32px; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 12px; max-width: 600px; margin-left: auto; margin-right: auto;">
-          <p style="margin: 0 0 12px 0; font-weight: 600; color: var(--color-primary-light);">Sample Data Includes:</p>
-          <ul style="margin: 0; padding-left: 20px; text-align: left; color: var(--color-text-secondary);">
-            <li>Epson 9900/WT7900 inks (8 cartridges)</li>
-            <li>Roland VS300 inks (4 cartridges)</li>
-            <li>Vinyl, paper, and canvas media</li>
-            <li>Laminate rolls</li>
-            <li>Maintenance supplies</li>
-            <li>All items include barcodes for scanner testing</li>
-          </ul>
-        </div>
+      <div class="empty-state" style="padding: 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <span style="color: var(--color-text-secondary);">📦 No inventory items yet.</span>
+        <button class="btn-primary btn-sm" onclick="window.inventoryApp.loadSampleData()">Load Sample Data</button>
+        <button class="btn-secondary btn-sm" onclick="window.inventoryApp.showAddItemModal()">+ Add Item</button>
       </div>
     `
   }

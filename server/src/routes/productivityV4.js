@@ -218,6 +218,14 @@ router.get('/session', asyncHandler(async (req, res) => {
     return res.json(success(null))
   }
 
+  // Auto-stop sessions with a stale heartbeat (> 2 hours = orphaned/forgotten session)
+  const STALE_THRESHOLD = 2 * 60 * 60 * 1000 // 2 hours in ms
+  if (session.last_heartbeat && (Date.now() - session.last_heartbeat) > STALE_THRESHOLD) {
+    // Stop using last heartbeat as end time to avoid inflating duration
+    await ProductivityV4.stopTracking(db, req.user.id, session.last_heartbeat)
+    return res.json(success(null))
+  }
+
   // Update heartbeat
   await ProductivityV4.updateHeartbeat(db, req.user.id)
 
