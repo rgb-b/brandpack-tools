@@ -1,0 +1,19 @@
+[Unit]
+Description=Brandpack Tools Web Application
+After=network.target
+
+[Service]
+Type=simple
+User=el
+WorkingDirectory=/home/el/Documents/El-Projects/brandpack-tools/server
+EnvironmentFile=/home/el/Documents/El-Projects/brandpack-tools/server/.env
+Environment="NODE_ENV=production"
+ExecStart=/home/el/.nvm/versions/node/v24.12.0/bin/node src/server.js
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=brandpack-tools
+
+[Install]
+WantedBy=multi-user.target
